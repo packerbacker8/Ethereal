@@ -38,9 +38,16 @@ public class PlayerController : MonoBehaviour
     private float walkSpeed;
     private float currentSpeed;
     [SerializeField]
+    private float jumpHeight = 10f;
+    [SerializeField]
     private float mouseSensitivity = 3f;
+    [SerializeField]
+    private float groundedDistance = 1.25f;
 
     private int invertedLook = -1;
+
+    private bool isGrounded = true;
+    private bool isJumping = false;
 
     private PlayerMotor motor;
 
@@ -67,7 +74,9 @@ public class PlayerController : MonoBehaviour
         float zMovement = (backwardMove ? -1 : 0) + (forwardMove ? 1 : 0);
         float yRotation = Input.GetAxisRaw("Mouse X");
         float xRotation = Input.GetAxisRaw("Mouse Y");
+        bool jumping = Input.GetKey(jump);
 
+        isGrounded = CheckIfGrounded();
         HandleWalking();
 
 
@@ -82,15 +91,35 @@ public class PlayerController : MonoBehaviour
 
         motor.RotateY(rotation);
 
-        Vector3 camRotation = new Vector3(xRotation * invertedLook, 0, 0) * mouseSensitivity;
+        float camRotationX = xRotation * invertedLook * mouseSensitivity;
 
-        motor.RotateCamera(camRotation);
+        motor.RotateCameraX(camRotationX);
+
+        HandleJumping(jumping);
     }
 
     private void HandleWalking()
     {
         bool isWalking = Input.GetKey(walk);
         currentSpeed = isWalking ? walkSpeed : normalSpeed;
+    }
+
+    private void HandleJumping(bool jumping)
+    {
+        if (jumping && isGrounded)
+        {
+            Vector3 jumpForce = Vector3.up * jumpHeight;
+            motor.ApplyJump(jumpForce);
+        }
+        else
+        {
+            motor.ApplyJump(Vector3.zero);
+        }
+    }
+
+    private bool CheckIfGrounded()
+    {
+        return Physics.Raycast(this.transform.position, Vector3.down, groundedDistance);
     }
 
     public void SetInvertLook(bool inv)
