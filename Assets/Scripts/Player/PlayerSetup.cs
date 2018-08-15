@@ -5,19 +5,19 @@ using UnityEngine.Networking;
 
 public class PlayerSetup : NetworkBehaviour
 {
-    [SerializeField]
-    Behaviour[] componentsToDisable;
+    public string remoteLayer = "RemotePlayer";
 
-    Camera worldCamera;
+    [SerializeField]
+    private Behaviour[] componentsToDisable;
+
+    private Camera worldCamera;
 
     private void Start()
     {
         if (!isLocalPlayer)
         {
-            foreach(Behaviour component in componentsToDisable)
-            {
-                component.enabled = false;
-            }
+            DisableComponents();
+            AssignRemoteLayer();
         }
         else
         {
@@ -28,6 +28,19 @@ public class PlayerSetup : NetworkBehaviour
                 Camera.main.gameObject.SetActive(false);
             }
         }
+    }
+
+    private void DisableComponents()
+    {
+        foreach (Behaviour component in componentsToDisable)
+        {
+            component.enabled = false;
+        }
+    }
+
+    private void AssignRemoteLayer()
+    {
+        gameObject.layer = LayerMask.NameToLayer(remoteLayer);
     }
 
     private void OnDisable()

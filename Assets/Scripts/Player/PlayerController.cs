@@ -19,17 +19,6 @@ public class PlayerController : MonoBehaviour
     public KeyCode crouch = KeyCode.LeftControl;
     #endregion
 
-    #region combat keycodes
-    [Header("Combat Keys")]
-    public KeyCode primaryAction = KeyCode.Mouse0;
-    public KeyCode secondaryAction = KeyCode.Mouse1;
-    public KeyCode interact = KeyCode.E;
-    public KeyCode reload = KeyCode.R;
-    public KeyCode melee = KeyCode.F;
-    public KeyCode quickSwitch = KeyCode.Q;
-    public KeyCode quickGrenade = KeyCode.G;
-    #endregion
-
     [Header("Movement")]
     [SerializeField]
     private float normalSpeed = 5f;
