@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4700824097423750}
   - component: {fileID: 114057826727247354}
   m_Layer: 9
-  m_Name: Gun
+  m_Name: AK47
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -310,10 +310,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: AK-47
-  damage: 27
+  damage: 36
   armorPenetration: 0.5
   range: 1000
-  rateOfFire: 0.5
+  roundsPerMinute: 600
   sprayPatternX:
   - 0
   - 0

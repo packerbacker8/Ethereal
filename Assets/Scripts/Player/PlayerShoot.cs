@@ -22,12 +22,16 @@ public class PlayerShoot : NetworkBehaviour
     private Weapon weapon;
 
     private bool reloading = false;
+    private bool tryReload = false;
     private bool shooting = false;
 
     private float timeSinceLastShot = 0;
+    private float reloadTime = 0;
+    private float spraySettleTime = 0;
 
     private int currentAmmo;
     private int currentWeaponIndex = 0;
+    private int sprayIndex = 0;
 
     [SerializeField]
     private LayerMask mask;
@@ -47,10 +51,35 @@ public class PlayerShoot : NetworkBehaviour
     private void Update()
     {
         shooting = Input.GetKey(primaryAction);
+        tryReload = Input.GetKeyDown(reload);
 
-        if (shooting && timeSinceLastShot == 0 && currentAmmo > 0)
+        if(tryReload && !reloading && currentAmmo < weapon.ammo)
+        {
+            StartReload();
+        }
+        else if (reloading)
+        {
+            reloadTime += Time.deltaTime;
+            if(reloadTime >= weapon.timeToReload)
+            {
+                FinishReload();
+            }
+        }
+
+        if (shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0)
         {
             Shoot();
+        }
+        else if (!shooting)
+        {
+            if(sprayIndex != 0)
+            {
+                spraySettleTime += Time.deltaTime;
+                if (spraySettleTime > weapon.settleTime)
+                {
+                    sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
+                }
+            }
         }
         timeSinceLastShot -= Time.deltaTime;
         timeSinceLastShot = timeSinceLastShot <= 0 ? 0 : timeSinceLastShot;
@@ -58,12 +87,32 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Shoot()
     {
-        timeSinceLastShot = weapon.rateOfFire;
+        timeSinceLastShot = weapon.GetRateOfFireTime();
         currentAmmo--;
         RaycastHit hit;
-        if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, weapon.range, mask))
+        Vector3 startPos = cam.transform.position;
+        Debug.Log("Spray index: " + sprayIndex);
+        Vector3 dir = cam.transform.forward + new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
+        Debug.DrawLine(startPos, dir * weapon.range, new Color(0.0333f * (sprayIndex + 1), 0, 0, 1), 10);
+        if (Physics.Raycast(startPos, dir, out hit, weapon.range, mask))
         {
             Debug.Log("We hit " + hit.collider.name);
         }
+        spraySettleTime = 0;
+        sprayIndex++;
+    }
+
+    private void StartReload()
+    {
+        reloading = true;
+        reloadTime = 0;
+    }
+
+    private void FinishReload()
+    {
+        reloading = false;
+        weapon.totalAmmo -= (weapon.ammo - currentAmmo);
+        currentAmmo = weapon.ammo;
+        sprayIndex = 0;
     }
 }
