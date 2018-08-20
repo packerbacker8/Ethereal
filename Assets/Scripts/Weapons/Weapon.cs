@@ -8,7 +8,7 @@ public abstract class Weapon : MonoBehaviour
 {
     public string weaponName = "AK-47";
 
-    public float damage = 36f;
+    public int damage = 36;
     public float armorPenetration = 0.5f;
     public float range = 1000f; //TODO: might want damage falloff, might not
     public float roundsPerMinute = 600f; //fires once every tenth of a second
@@ -16,9 +16,12 @@ public abstract class Weapon : MonoBehaviour
     public float settleTime = 0.25f; // every quarter a second go back one index on the spray if not shooting
 
     public int ammo = 30;
+    public int currentAmmo = 30;
     public int totalAmmo = 240;
     public int killValue = 300;
     public int teamValue = 100;
+
+    public GameObject weaponGraphics;
 
     public float[] SprayPatternX
     {
@@ -115,6 +118,8 @@ public abstract class Weapon : MonoBehaviour
     {
         return rateOfFire;
     }
+
+
 
     /// <summary>
     /// Where values are set that are specific to each individual weapon and some 
