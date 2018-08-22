@@ -107,14 +107,7 @@ public class WeaponManager : NetworkBehaviour
             Util.SetLayerRecusively(currentWeapon.weaponGraphics, LayerMask.NameToLayer(WEAPON_LAYER_NAME));
         }
 
-
-        this.gameObject.AddComponent<ObjectPool>();
-        this.GetComponent<ObjectPool>().amountPooled = 150;
-        this.GetComponent<ObjectPool>().objectToPool = currentWeapon.weaponGraphics.GetComponent<WeaponGraphics>().hitEffectPrefab;
-        this.GetComponent<ObjectPool>().SetupPool();
-
         this.SendMessage("WeaponChanged");
-        this.SendMessage("EffectPoolReady");
     }
 
     [Client]

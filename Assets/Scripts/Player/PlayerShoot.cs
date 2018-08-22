@@ -24,10 +24,12 @@ public class PlayerShoot : NetworkBehaviour
     private Camera cam;
     private Weapon weapon;
     private WeaponManager weaponManager;
-    private ObjectPool hitEffectPool;
+    private ObjectPool hitEffectPool = null;
+    private ObjectPoolManager allPools;
 
     private const string PLAYER_TAG = "Player";
-
+    private const string OBJECT_POOLS_TAG = "ObjectPools";
+    private const string HIT_EFFECT_POOL_NAME = "HitEffectPool";
 
     private bool reloading = false;
     private bool tryReload = false;
@@ -53,7 +55,8 @@ public class PlayerShoot : NetworkBehaviour
             this.enabled = false;
         }
         weaponManager = GetComponent<WeaponManager>();
-        
+        allPools = GameObject.FindGameObjectWithTag(OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
+        StartCoroutine(GetHitEffectPool());
     }
 
     private void Update()
@@ -143,14 +146,6 @@ public class PlayerShoot : NetworkBehaviour
         effect.transform.position = hitPos;
         effect.transform.rotation = Quaternion.LookRotation(normalPos);
         effect.SetActive(true);
-        RemoveHitEffect(2f, effect);
-    }
-
-    private IEnumerator RemoveHitEffect(float timeToStay, GameObject objToRemove)
-    {
-        yield return new WaitForSeconds(timeToStay);
-        objToRemove.SetActive(false);
-        yield return null;
     }
 
     /// <summary>
@@ -216,6 +211,29 @@ public class PlayerShoot : NetworkBehaviour
         sprayIndex = 0;
     }
 
+    /// <summary>
+    /// Attempt to get the object pool containing the hit effects quickly, but keep trying if it doesn't happen immediately.
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator GetHitEffectPool()
+    {
+        int tries = 0;
+        float timeToWait = 0.1f;
+        GameObject hitEffectObj;
+        while(hitEffectPool == null && tries < 10)
+        {
+            hitEffectObj = allPools.GetObjectPoolByName(HIT_EFFECT_POOL_NAME);
+            if(hitEffectObj != null)
+            {
+                hitEffectPool = hitEffectObj.GetComponent<ObjectPool>();
+            }
+            yield return new WaitForSeconds(timeToWait);
+            timeToWait += 0.5f;
+            tries++;
+        }
+        yield return null;
+    }
+
     public void WeaponChanged()
     {
         if(weaponManager != null)
@@ -237,10 +255,5 @@ public class PlayerShoot : NetworkBehaviour
             currentAmmo = weapon.currentAmmo;
             sprayIndex = weapon.SprayPatternX.Length/2;
         }
-    }
-
-    public void EffectPoolReady()
-    {
-        hitEffectPool = this.GetComponent<ObjectPool>();
     }
 }

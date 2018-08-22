@@ -23,6 +23,7 @@ public class ObjectPool : MonoBehaviour {
         for (int i = 0; i < amountPooled; i++)
         {
             GameObject obj = Instantiate(objectToPool) as GameObject;
+            obj.transform.parent = this.transform;
             obj.SetActive(false);
             objectPool.Add(obj);
         }
@@ -40,6 +41,7 @@ public class ObjectPool : MonoBehaviour {
         for (int i = 0; i < amountPooled; i++)
         {
             GameObject obj = Instantiate(newObject) as GameObject;
+            obj.transform.parent = this.transform;
             obj.SetActive(false);
             objectPool.Add(obj);
         }
