@@ -23,6 +23,7 @@ public class PlayerSetup : NetworkBehaviour
         {
             DisableComponents();
             AssignRemoteLayer();
+            playerUI = null;
         }
         else
         {
@@ -69,5 +70,11 @@ public class PlayerSetup : NetworkBehaviour
     {
         Destroy(playerUI);
         GameManager.DeRegisterPlayer(this.GetComponent<NetworkIdentity>().netId.ToString());
+    }
+
+
+    public GameObject GetPlayerUI()
+    {
+        return playerUI;
     }
 }

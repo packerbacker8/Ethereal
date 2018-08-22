@@ -28,6 +28,8 @@ public class PlayerManager : NetworkBehaviour
     private Behaviour[] disableOnDeath;
     private bool[] wasEnabled;
     private Collider col;
+    private GameObject playerUIObj;
+    private PlayerUIScript playerUI;
 
     /// <summary>
     /// Initializes disable on death arrays and was enabled arrays
@@ -41,6 +43,15 @@ public class PlayerManager : NetworkBehaviour
             wasEnabled[i] = disableOnDeath[i].enabled;
         }
 
+        playerUIObj = this.GetComponent<PlayerSetup>().GetPlayerUI();
+        if(playerUIObj != null)
+        {
+            playerUI = playerUIObj.GetComponent<PlayerUIScript>();
+        }
+        else
+        {
+            playerUI = null;
+        }
         SetDefaults();
     }
 
@@ -53,10 +64,15 @@ public class PlayerManager : NetworkBehaviour
     {
         if (!Dead)
         {
-            currentHealth -= amount;
+            currentHealth -= amount;            
             if(currentHealth <= 0)
             {
+                currentHealth = 0;
                 KillPlayer();
+            }
+            if (playerUI != null)
+            {
+                playerUI.SetHealth((float)currentHealth / maxHealth);
             }
         }
     }
@@ -100,6 +116,10 @@ public class PlayerManager : NetworkBehaviour
     public void SetDefaults()
     {
         currentHealth = maxHealth;
+        if (playerUI != null)
+        {
+            playerUI.SetHealth(1f);
+        }
         isDead = false;
         for (int i = 0; i < disableOnDeath.Length; i++)
         {
