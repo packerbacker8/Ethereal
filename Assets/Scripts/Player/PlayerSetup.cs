@@ -11,8 +11,6 @@ public class PlayerSetup : NetworkBehaviour
     [SerializeField]
     private Behaviour[] componentsToDisable;
 
-    private Camera worldCamera;
-
     [SerializeField]
     private GameObject playerUIPrefab;
     private GameObject playerUI;
@@ -27,18 +25,12 @@ public class PlayerSetup : NetworkBehaviour
         }
         else
         {
-            worldCamera = GameObject.FindGameObjectWithTag("WorldCamera").GetComponent<Camera>();
-            if(worldCamera != null)
-            {
-                //temporary - will be moved to a different location at a future date
-                worldCamera.enabled = false;
-            }
             //create player ui
             playerUI = Instantiate(playerUIPrefab);
             playerUI.name = "PlayerUI";
+            this.GetComponent<PlayerManager>().SetupPlayer();
         }
 
-        this.GetComponent<PlayerManager>().Setup();
     }
 
     /// <summary>
@@ -69,6 +61,10 @@ public class PlayerSetup : NetworkBehaviour
     private void OnDisable()
     {
         Destroy(playerUI);
+        if (isLocalPlayer)
+        {
+            GameManager.instance.SetWorldCameraActive(true);
+        }
         GameManager.DeRegisterPlayer(this.GetComponent<NetworkIdentity>().netId.ToString());
     }
 

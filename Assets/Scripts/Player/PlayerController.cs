@@ -36,7 +36,6 @@ public class PlayerController : MonoBehaviour
     private int invertedLook = -1;
 
     private bool isGrounded = true;
-    private bool isJumping = false;
 
     private PlayerMotor motor;
 

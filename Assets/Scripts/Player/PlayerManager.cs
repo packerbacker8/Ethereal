@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
+[RequireComponent(typeof(PlayerSetup))]
 public class PlayerManager : NetworkBehaviour
 {
     public int maxHealth = 100;
@@ -23,6 +24,7 @@ public class PlayerManager : NetworkBehaviour
 
     [SyncVar]
     private bool isDead = false;
+    private bool firstSetup = true;
 
     [SerializeField]
     private Behaviour[] disableOnDeath;
@@ -31,34 +33,71 @@ public class PlayerManager : NetworkBehaviour
     private GameObject playerUIObj;
     private PlayerUIScript playerUI;
 
+    [SerializeField]
+    private GameObject deathEffect; //this will likely just be an animation
+    [SerializeField]
+    private GameObject spawnEffect;
+
+    
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            RpcTakeDamage(12000);
+        }
+    }
+
     /// <summary>
     /// Initializes disable on death arrays and was enabled arrays
     /// </summary>
-    public void Setup()
+    public void SetupPlayer()
     {
-        col = this.GetComponent<Collider>();
-        wasEnabled = new bool[disableOnDeath.Length];
-        for (int i = 0; i < wasEnabled.Length; i++)
+        if (isLocalPlayer)
         {
-            wasEnabled[i] = disableOnDeath[i].enabled;
+            this.GetComponent<PlayerSetup>().GetPlayerUI().SetActive(true);
+            GameManager.instance.SetWorldCameraActive(false);
+        CmdBroadCastNewPlayerSetup();
         }
 
-        playerUIObj = this.GetComponent<PlayerSetup>().GetPlayerUI();
-        if(playerUIObj != null)
+    }
+
+    [Command]
+    private void CmdBroadCastNewPlayerSetup()
+    {
+        RpcSetupPlayerOnAllClients();
+    }
+
+    [ClientRpc]
+    private void RpcSetupPlayerOnAllClients()
+    {
+        if (firstSetup)
         {
-            playerUI = playerUIObj.GetComponent<PlayerUIScript>();
+            col = this.GetComponent<Collider>();
+            wasEnabled = new bool[disableOnDeath.Length];
+            for (int i = 0; i < wasEnabled.Length; i++)
+            {
+                wasEnabled[i] = disableOnDeath[i].enabled;
+            }
+
+            playerUIObj = this.GetComponent<PlayerSetup>().GetPlayerUI();
+            if (playerUIObj != null)
+            {
+                playerUI = playerUIObj.GetComponent<PlayerUIScript>();
+            }
+            else
+            {
+                playerUI = null;
+            }
+            firstSetup = false;
         }
-        else
-        {
-            playerUI = null;
-        }
+        
         SetDefaults();
     }
 
     /// <summary>
     /// Give the player damage amount and subtract it from the current health.
     /// </summary>
-    /// <param name="amount"></param>
+    /// <param name="amount">How much damage to take.</param>
     [ClientRpc]
     public void RpcTakeDamage(int amount)
     {
@@ -83,14 +122,27 @@ public class PlayerManager : NetworkBehaviour
     public void KillPlayer()
     {
         isDead = true;
+        if (isLocalPlayer)
+        {
+            this.GetComponent<PlayerController>().playerCam.gameObject.SetActive(false);
+            this.GetComponent<PlayerSetup>().GetPlayerUI().SetActive(false);
+            GameManager.instance.SetWorldCameraActive(true);
+            this.GetComponent<Rigidbody>().useGravity = false;
+        }
+        //disable components to prevent player control
         for (int i = 0; i < disableOnDeath.Length; i++)
         {
             disableOnDeath[i].enabled = false;
         }
+        //disable collider
         if (col != null)
         {
             col.enabled = false;
         }
+
+        //spawn death effect
+        //GameObject death = Instantiate(deathEffect, this.transform.position, Quaternion.identity);
+        //Destroy(death, 3f);
 
         Debug.Log(this.transform.name + " has died.");
         StartCoroutine(Respawn());
@@ -104,9 +156,14 @@ public class PlayerManager : NetworkBehaviour
     private IEnumerator Respawn()
     {
         yield return new WaitForSeconds(GameManager.instance.matchSettings.respawnTime);
-        SetDefaults();
+        //get position to spawn at
         Transform respawnPoint = NetworkManager.singleton.GetStartPosition();
-        transform.position = respawnPoint.position;
+        this.transform.position = respawnPoint.position;
+        this.transform.rotation = respawnPoint.rotation;
+        //wait for position to spawn at to be sent across network before spawning
+        yield return new WaitForSeconds(0.1f);
+
+        SetupPlayer();
     }
 
     /// <summary>
@@ -115,6 +172,12 @@ public class PlayerManager : NetworkBehaviour
     /// </summary>
     public void SetDefaults()
     {
+        //might not need this if statement
+        if (isLocalPlayer)
+        {
+            this.GetComponent<PlayerController>().playerCam.gameObject.SetActive(true);
+            this.GetComponent<Rigidbody>().useGravity = true;
+        }
         currentHealth = maxHealth;
         if (playerUI != null)
         {
@@ -130,5 +193,8 @@ public class PlayerManager : NetworkBehaviour
         {
             col.enabled = true;
         }
+
+        GameObject spwnEff = Instantiate(spawnEffect, this.transform.position, Quaternion.identity);
+        Destroy(spwnEff, 3f);
     }
 }

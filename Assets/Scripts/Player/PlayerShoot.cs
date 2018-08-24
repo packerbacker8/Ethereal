@@ -40,7 +40,6 @@ public class PlayerShoot : NetworkBehaviour
     private float spraySettleTime = 0;
 
     private int currentAmmo;
-    private int currentWeaponIndex = 0;
     private int sprayIndex = 0;
 
     [SerializeField]
