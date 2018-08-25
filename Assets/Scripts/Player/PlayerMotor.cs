@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMotor : MonoBehaviour
 {
+    public bool isMoving { get; protected set; }
     private Camera cam;
 
     private Vector3 velocity = Vector3.zero;
@@ -23,11 +24,13 @@ public class PlayerMotor : MonoBehaviour
     private void Start()
     {
         rigid = this.GetComponent<Rigidbody>();
+        isMoving = false;
     }
 
 
     private void FixedUpdate()
     {
+        isMoving = velocity != Vector3.zero || rigid.velocity.magnitude != 0;
         PerformMovement();
         PerformRotation();
     }

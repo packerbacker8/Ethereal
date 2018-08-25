@@ -26,6 +26,7 @@ public class PlayerShoot : NetworkBehaviour
     private WeaponManager weaponManager;
     private ObjectPool hitEffectPool = null;
     private ObjectPoolManager allPools;
+    private PlayerMotor motor;
 
     private const string PLAYER_TAG = "Player";
     private const string OBJECT_POOLS_TAG = "ObjectPools";
@@ -56,10 +57,15 @@ public class PlayerShoot : NetworkBehaviour
         weaponManager = GetComponent<WeaponManager>();
         allPools = GameObject.FindGameObjectWithTag(OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
         StartCoroutine(GetHitEffectPool());
+        motor = this.GetComponent<PlayerMotor>();
     }
 
     private void Update()
     {
+        if (PauseMenu.isPaused)
+        {
+            return;
+        }
         shooting = Input.GetKey(primaryAction);
         tryReload = Input.GetKeyDown(reload);
 
@@ -160,18 +166,27 @@ public class PlayerShoot : NetworkBehaviour
         //we are shooting, tell server to do the shoot effects
         CmdOnShoot();
 
+        //if they are shooting after switching index can go above length of spray pattern
         if (sprayIndex > weapon.SprayPatternX.Length - 1)
         {
             sprayIndex = weapon.SprayPatternX.Length - 1;
-        } //if they are shooting after switching index can go above length of spray pattern
+        }
         timeSinceLastShot = weapon.GetRateOfFireTime();
         currentAmmo--;
         weapon.currentAmmo = currentAmmo;
         Vector3 startPos = cam.transform.position;
-        Vector3 dir = cam.transform.forward + new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
+        Vector3 sprayVal;
+        if (motor.isMoving)
+        {
+            sprayVal = new Vector3(weapon.MovingSprayPatternX[sprayIndex], weapon.MovingSprayPatternY[sprayIndex], 0);
+        }
+        else
+        {
+            sprayVal = new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
+        }
+        Vector3 dir = cam.transform.forward + sprayVal;
         if (showSprayLines)
         {
-            Debug.Log("Spray index: " + sprayIndex);
             Debug.DrawLine(startPos, dir * weapon.range, new Color(0.0333f * (sprayIndex + 1), 0, 0, 1), 10);
         }
         RaycastHit hit;

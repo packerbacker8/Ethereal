@@ -6,6 +6,7 @@ using UnityEditor;
 public class SprayPatternDrawing : EditorWindow
 {
     private static int numBulletsToDraw = 100000;
+    private static string patternToDraw = "";
     private List<Vector2> pointsToDraw = new List<Vector2>();
     private List<float> sprayPatternX = new List<float>();
     private List<float> sprayPatternY = new List<float>();
@@ -17,8 +18,37 @@ public class SprayPatternDrawing : EditorWindow
         Debug.Log("Recieved: " + numBullets);
     }
 
+    public static void ShowWindow(string pattern)
+    {
+        GetWindow<SprayPatternDrawing>("Spray Pattern Creator");
+        patternToDraw = pattern;
+        Debug.Log("Recieved: " + pattern);
+    }
+
+    private void ParsePattern()
+    {
+        string[] xAndYPat = patternToDraw.Split(';');
+        string[] xPat = xAndYPat[0].Split(',');
+        string[] yPat = xAndYPat[1].Split(',');
+
+        for (int i = 0; i < xPat.Length; i++)
+        {
+            xPat[i] = xPat[i].TrimEnd('f');
+            yPat[i] = yPat[i].TrimEnd('f');
+            float xNorm = float.Parse(xPat[i]);
+            float yNorm = float.Parse(yPat[i]);
+            xNorm = (xNorm + 1) / 2;
+            yNorm = ((yNorm - 1) / 2) * -1;
+            pointsToDraw.Add(new Vector2(xNorm, yNorm));
+        }
+    }
+
     private void OnGUI()
     {
+        if(patternToDraw != "" && numBulletsToDraw == 100000 && pointsToDraw.Count == 0)
+        {
+            ParsePattern();
+        }
         Event e = Event.current;
         int controlID = GUIUtility.GetControlID(FocusType.Passive);
         switch (e.GetTypeForControl(controlID))

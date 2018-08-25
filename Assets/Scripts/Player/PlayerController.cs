@@ -53,6 +53,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenu.isPaused)
+        {
+            return;
+        }
         //calculate movement velocity as 3d vector
         bool forwardMove = Input.GetKey(moveForward);
         bool backwardMove = Input.GetKey(moveBackward);
