@@ -38,14 +38,6 @@ public class PlayerManager : NetworkBehaviour
     [SerializeField]
     private GameObject spawnEffect;
 
-    
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            RpcTakeDamage(12000);
-        }
-    }
 
     /// <summary>
     /// Initializes disable on death arrays and was enabled arrays
