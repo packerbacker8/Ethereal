@@ -8,6 +8,7 @@ public class Grenades : NetworkBehaviour
     public string WeaponType = "Grenade";
 
     public string weaponName = "Frag Grenade";
+    public string weaponSlot = "grenades";
 
     public int damage = 74;
     public float armorPenetration = 0.1f;
@@ -31,6 +32,6 @@ public class Grenades : NetworkBehaviour
     /// </summary>
     public virtual void SetupWeapon()
     {
-
+        
     }
 }

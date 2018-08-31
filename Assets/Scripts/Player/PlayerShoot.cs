@@ -62,7 +62,8 @@ public class PlayerShoot : NetworkBehaviour
 
     private void Update()
     {
-        if (PauseMenu.isPaused)
+        //if weapon is null we don't want to keep doing weapon related stuff
+        if (PauseMenu.isPaused || weapon == null)
         {
             return;
         }
@@ -118,7 +119,8 @@ public class PlayerShoot : NetworkBehaviour
     {
         if(weapon == null)
         {
-            WeaponChanged();
+            //WeaponChanged();
+            return;
         }
         weapon.weaponGraphics.GetComponentInChildren<WeaponGraphics>().muzzleFlash.Play();
     }
@@ -159,7 +161,7 @@ public class PlayerShoot : NetworkBehaviour
     [Client]
     private void Shoot()
     {
-        if (!isLocalPlayer)
+        if (!isLocalPlayer || weapon == null)
         {
             return;
         }
@@ -212,6 +214,10 @@ public class PlayerShoot : NetworkBehaviour
 
     private void StartReload()
     {
+        if(weapon == null)
+        {
+            return;
+        }
         reloading = true;
         reloadTime = 0;
     }
@@ -253,6 +259,12 @@ public class PlayerShoot : NetworkBehaviour
         if(weaponManager != null)
         {
             Weapon tempWeapon = weaponManager.GetCurrentWeapon();
+            //we have no weapons
+            if(tempWeapon == null)
+            {
+                weapon = null;
+                return;
+            }
             switch (tempWeapon.gameObject.name)
             {
                 case ("AK47"):
@@ -267,7 +279,7 @@ public class PlayerShoot : NetworkBehaviour
             }
             weapon.SetupWeapon();
             currentAmmo = weapon.currentAmmo;
-            sprayIndex = weapon.SprayPatternX.Length/2;
+            sprayIndex = 0;
         }
     }
 }

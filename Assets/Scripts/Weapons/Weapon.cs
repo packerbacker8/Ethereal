@@ -6,7 +6,8 @@ using UnityEngine.Networking;
 [System.Serializable]
 public abstract class Weapon : MonoBehaviour
 {
-    public string weaponName = "AK-47";
+    public string weaponName = "AK47";
+    public string weaponSlot = "primary";
 
     public int damage = 36;
     public float armorPenetration = 0.5f;
@@ -125,5 +126,8 @@ public abstract class Weapon : MonoBehaviour
     /// Where values are set that are specific to each individual weapon and some 
     /// type specific values where applied to the entire weapon type.
     /// </summary>
-    public abstract void SetupWeapon();
+    public virtual void SetupWeapon()
+    {
+        this.gameObject.name = weaponName;
+    }
 }
