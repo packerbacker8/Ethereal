@@ -362,7 +362,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponName: UMP45
-  weaponSlot: secondary
+  weaponSlot: primary
   damage: 17
   armorPenetration: 0.24
   range: 1000
