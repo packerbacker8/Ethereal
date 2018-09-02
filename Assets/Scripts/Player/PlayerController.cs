@@ -79,6 +79,11 @@ public class PlayerController : MonoBehaviour
 
         motor.Move(velocity);
 
+        //This is here to allow players to move, but not move camera or jump while in menus.
+        if (PlayerUIScript.IsInEconomyMenu)
+        {
+            return;
+        }
         Vector3 rotation = new Vector3(0, yRotation, 0) * mouseSensitivity;
 
         motor.RotateY(rotation);

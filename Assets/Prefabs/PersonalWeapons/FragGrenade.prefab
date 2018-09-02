@@ -526,9 +526,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WeaponType: Grenade
   weaponName: Frag Grenade
+  weaponSlot: grenades
   damage: 74
   armorPenetration: 0.1
   damageRadius: 100
+  throwDistance: 100
   killValue: 500
   teamValue: 50
   numAbleToEquip: 1

@@ -12,7 +12,6 @@ public class PlayerShoot : NetworkBehaviour
     [Header("Combat Keys")]
     public KeyCode primaryAction = KeyCode.Mouse0;
     public KeyCode secondaryAction = KeyCode.Mouse1;
-    public KeyCode interact = KeyCode.E;
     public KeyCode reload = KeyCode.R;
     public KeyCode melee = KeyCode.F;
     public KeyCode quickGrenade = KeyCode.G;
@@ -63,7 +62,7 @@ public class PlayerShoot : NetworkBehaviour
     private void Update()
     {
         //if weapon is null we don't want to keep doing weapon related stuff
-        if (PauseMenu.isPaused || weapon == null)
+        if (PauseMenu.isPaused || weapon == null || PlayerUIScript.IsInEconomyMenu)
         {
             return;
         }

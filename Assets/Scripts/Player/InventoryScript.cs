@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class InventoryScript : MonoBehaviour
 {
+    public bool autoPickup = true;
+    public float pickupRange = 10f;
+    public KeyCode interact = KeyCode.E;
+
+
     [Header("Inventory Slot Keys")]
     public const string PRIMARY = "primary";
     public const string SECONDARY = "secondary";
@@ -14,18 +19,28 @@ public class InventoryScript : MonoBehaviour
     public const string WEAPON_LAYER = "Weapon";
     public const string WORLD_OBJECT_LAYER = "WorldObject";
 
-    private Dictionary<string, GameObject> inventory;
+    public const int GRENADE_COUNT = 4;
+
+    private GameObject playerCam;
+
+    private Dictionary<string, GameObject[]> inventory;
+
+    private void Start()
+    {
+        playerCam = this.transform.parent.gameObject;
+    }
 
     public void SetupInventory()
     {
-        inventory = new Dictionary<string, GameObject>() {
-            { PRIMARY, null},
-            { SECONDARY, null},
-            { KNIFE, null},
-            { GRENADES, null},
-            { BOMB, null}
+        inventory = new Dictionary<string, GameObject[]>() {
+            { PRIMARY, new GameObject[] {null} }, 
+            { SECONDARY, new GameObject[] {null}},
+            { KNIFE, new GameObject[] {null}},
+            { GRENADES, new GameObject[] {null, null, null, null}},
+            { BOMB, new GameObject[] {null}}
         };
 
+        //see if there are weapons currently parented to the inventory management item
         for (int i = 0; i < this.transform.childCount; i++)
         {
             GameObject child = this.transform.GetChild(i).gameObject;
@@ -36,7 +51,7 @@ public class InventoryScript : MonoBehaviour
                 child.GetComponent<Rigidbody>().isKinematic = true;
                 child.GetComponent<Rigidbody>().detectCollisions = false;
                 child.GetComponent<Collider>().enabled = false;
-                inventory[child.GetComponent<Weapon>().weaponSlot] = child;
+                inventory[child.GetComponent<Weapon>().weaponSlot][0] = child; //always position 0 because there is only one item for these slots 
 
             }
             else if(child.GetComponent<Grenades>() != null)
@@ -45,7 +60,54 @@ public class InventoryScript : MonoBehaviour
                 child.GetComponent<Rigidbody>().isKinematic = true;
                 child.GetComponent<Rigidbody>().detectCollisions = false;
                 child.GetComponent<Collider>().enabled = false;
-                inventory[child.GetComponent<Grenades>().weaponSlot] = child;
+                //loop over four game object spots for grenades
+                for (int j = 0; j < 4; j++)
+                {
+                    if(inventory[child.GetComponent<Grenades>().weaponSlot][j] == null)
+                    {
+                        inventory[child.GetComponent<Grenades>().weaponSlot][j] = child;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if(inventory == null)
+        {
+            return;
+        }
+
+        bool interactPressed = Input.GetKeyDown(interact);
+
+        if (interactPressed)
+        {
+            AttemptToPickup();
+        }
+    }
+
+    private void AttemptToPickup()
+    {
+        RaycastHit hit;
+        Debug.DrawLine(playerCam.transform.position, playerCam.transform.position + playerCam.transform.forward * pickupRange, Color.blue, 5f);
+        int mask = 1 << LayerMask.NameToLayer(WORLD_OBJECT_LAYER);
+        if (Physics.Raycast(playerCam.transform.position, playerCam.transform.forward, out hit, pickupRange, mask))
+        {
+            GameObject hitObj = hit.transform.gameObject;
+            if(hitObj.GetComponent<Weapon>() != null)
+            {
+                SetWeapon(hitObj.GetComponent<Weapon>().weaponSlot, hitObj);
+            }
+            else if(hitObj.GetComponent<Grenades>() != null)
+            {
+                int nextAvailIndex = GetNextAvailGrenadeSpot();
+                if(nextAvailIndex == -1)
+                {
+                    return;
+                }
+                SetWeapon(hitObj.GetComponent<Grenades>().weaponSlot, hitObj, nextAvailIndex);
             }
         }
     }
@@ -55,12 +117,12 @@ public class InventoryScript : MonoBehaviour
         return new List<string>() { PRIMARY, SECONDARY, KNIFE, GRENADES, BOMB };
     }
 
-    public Dictionary<string, GameObject> GetInventory()
+    public Dictionary<string, GameObject[]> GetInventory()
     {
         return inventory;
     }
 
-    public GameObject GetWeapon(string slot)
+    public GameObject GetWeapon(string slot, int grenadeIndex = 0)
     {
         switch (slot)
         {
@@ -71,7 +133,7 @@ public class InventoryScript : MonoBehaviour
             case KNIFE:
                 return GetKnife();
             case GRENADES:
-                return GetGrenades();
+                return GetGrenade(grenadeIndex % GRENADE_COUNT);
             case BOMB:
                 return GetObjectiveBomb();
             default:
@@ -82,53 +144,58 @@ public class InventoryScript : MonoBehaviour
 
     public GameObject GetPrimaryWeapon()
     {
-        return inventory[PRIMARY];
+        return inventory[PRIMARY][0];
     }
 
     public GameObject GetSecondaryWeapon()
     {
-        return inventory[SECONDARY];
+        return inventory[SECONDARY][0];
     }
 
     public GameObject GetKnife()
     {
-        return inventory[KNIFE];
+        return inventory[KNIFE][0];
     }
 
-    public GameObject GetGrenades()
+    public GameObject GetGrenade(int index)
+    {
+        return inventory[GRENADES][index];
+    }
+
+    public GameObject[] GetGrenades()
     {
         return inventory[GRENADES];
     }
 
     public GameObject GetObjectiveBomb()
     {
-        return inventory[BOMB];
+        return inventory[BOMB][0];
     }
 
-    public void RemoveWeapon(string slot)
+    public void RemoveWeapon(string slot, int grenadeIndex = 0)
     {
         GameObject wepToRemove;
         switch (slot)
         {
             case PRIMARY:
-                wepToRemove = inventory[PRIMARY];
-                inventory[PRIMARY] = null;
+                wepToRemove = inventory[PRIMARY][0];
+                inventory[PRIMARY][0] = null;
                 break;
             case SECONDARY:
-                wepToRemove = inventory[SECONDARY];
-                inventory[SECONDARY] = null;
+                wepToRemove = inventory[SECONDARY][0];
+                inventory[SECONDARY][0] = null;
                 break;
             case KNIFE:
-                wepToRemove = inventory[KNIFE];
-                inventory[KNIFE] = null;
+                wepToRemove = inventory[KNIFE][0];
+                inventory[KNIFE][0] = null;
                 break;
             case GRENADES:
-                wepToRemove = inventory[GRENADES];
-                inventory[GRENADES] = null;
+                wepToRemove = inventory[GRENADES][grenadeIndex % GRENADE_COUNT];
+                inventory[GRENADES][grenadeIndex % GRENADE_COUNT] = null;
                 break;
             case BOMB:
-                wepToRemove = inventory[BOMB];
-                inventory[BOMB] = null;
+                wepToRemove = inventory[BOMB][0];
+                inventory[BOMB][0] = null;
                 break;
             default:
                 Debug.LogError("This is not a recognized inventory slot: " + slot);
@@ -137,34 +204,35 @@ public class InventoryScript : MonoBehaviour
         wepToRemove.transform.parent = null;
         Util.SetLayerRecusively(wepToRemove, LayerMask.NameToLayer(WORLD_OBJECT_LAYER));
         wepToRemove.transform.position = wepToRemove.transform.position + wepToRemove.transform.forward * (this.GetComponent<SphereCollider>().radius * 2.5f);
+        wepToRemove.transform.position = new Vector3(wepToRemove.transform.position.x, this.transform.position.y, wepToRemove.transform.position.z);
         wepToRemove.GetComponent<Rigidbody>().useGravity = true;
         wepToRemove.GetComponent<Rigidbody>().isKinematic = false;
         wepToRemove.GetComponent<Rigidbody>().detectCollisions = true;
-        wepToRemove.GetComponent<Rigidbody>().AddForce(wepToRemove.transform.forward * 100f);
-        wepToRemove.GetComponent<Rigidbody>().AddTorque(wepToRemove.transform.right * 100f);
+        wepToRemove.GetComponent<Rigidbody>().AddForce(wepToRemove.transform.forward * 1000f);
+        wepToRemove.GetComponent<Rigidbody>().AddTorque(wepToRemove.transform.forward * 1000f);
         wepToRemove.GetComponent<Collider>().enabled = true;
         this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
     }
 
     public void ClearInventory()
     {
-        inventory = new Dictionary<string, GameObject>() {
-            { PRIMARY, null},
-            { SECONDARY, null},
-            { KNIFE, null},
-            { GRENADES, null},
-            { BOMB, null}
+        inventory = new Dictionary<string, GameObject[]>() {
+            { PRIMARY, new GameObject[] {null} },
+            { SECONDARY, new GameObject[] {null}},
+            { KNIFE, new GameObject[] {null}},
+            { GRENADES, new GameObject[] {null, null, null, null}},
+            { BOMB, new GameObject[] {null}}
         };
     }
 
-    public bool SetWeapon(string slot, GameObject wep)
+    public bool SetWeapon(string slot, GameObject wep, int grenadeIndex = 0)
     {
         switch (slot)
         {
             case PRIMARY:
                 if (SetPrimaryWeapon(wep))
                 {
-                    wep.transform.SetParent(this.transform);
+                    PrepareWeaponForAddToPlayer(wep);
                     this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
                     return true;
                 }
@@ -175,7 +243,7 @@ public class InventoryScript : MonoBehaviour
             case SECONDARY:
                 if (SetSecondaryWeapon(wep))
                 {
-                    wep.transform.SetParent(this.transform);
+                    PrepareWeaponForAddToPlayer(wep);
                     this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
                     return true;
                 }
@@ -186,7 +254,7 @@ public class InventoryScript : MonoBehaviour
             case KNIFE:
                 if (SetKnifeWeapon(wep))
                 {
-                    wep.transform.SetParent(this.transform);
+                    PrepareWeaponForAddToPlayer(wep);
                     this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
                     return true;
                 }
@@ -195,9 +263,9 @@ public class InventoryScript : MonoBehaviour
                     return false;
                 }
             case GRENADES:
-                if (SetGrenades(wep))
+                if (SetGrenade(wep, grenadeIndex % GRENADE_COUNT))
                 {
-                    wep.transform.SetParent(this.transform);
+                    PrepareWeaponForAddToPlayer(wep);
                     this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
                     return true;
                 }
@@ -208,7 +276,7 @@ public class InventoryScript : MonoBehaviour
             case BOMB:
                 if (SetObjectiveBomb(wep))
                 {
-                    wep.transform.SetParent(this.transform);
+                    PrepareWeaponForAddToPlayer(wep);
                     this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
                     return true;
                 }
@@ -228,11 +296,11 @@ public class InventoryScript : MonoBehaviour
         {
             return false;
         }
-        if(inventory[PRIMARY] != null)
+        if(inventory[PRIMARY][0] != null)
         {
             RemoveWeapon(PRIMARY);
         }
-        inventory[PRIMARY] = wep;
+        inventory[PRIMARY][0] = wep;
         return true;
     }
 
@@ -242,11 +310,11 @@ public class InventoryScript : MonoBehaviour
         {
             return false;
         }
-        if (inventory[SECONDARY] != null)
+        if (inventory[SECONDARY][0] != null)
         {
             RemoveWeapon(SECONDARY);
         }
-        inventory[SECONDARY] = wep;
+        inventory[SECONDARY][0] = wep;
         return true;
     }
 
@@ -256,25 +324,53 @@ public class InventoryScript : MonoBehaviour
         {
             return false;
         }
-        if (inventory[KNIFE] != null)
+        if (inventory[KNIFE][0] != null)
         {
             RemoveWeapon(KNIFE);
         }
-        inventory[KNIFE] = wep;
+        inventory[KNIFE][0] = wep;
         return true;
     }
 
-    private bool SetGrenades(GameObject grenades)
+    private bool SetGrenade(GameObject grenade, int grenadeIndex)
     {
-        if (grenades == null || grenades.GetComponent<Grenades>() == null)
+        if (grenade == null || grenade.GetComponent<Grenades>() == null)
         {
             return false;
         }
-        if (inventory[GRENADES] != null)
+        if (AllGrenadeSpotsTaken())
+        {
+            return false;
+        }
+        if (inventory[GRENADES][grenadeIndex] != null)
         {
             RemoveWeapon(GRENADES);
         }
-        inventory[GRENADES] = grenades;
+        inventory[GRENADES][grenadeIndex] = grenade;
+        return true;
+    }
+
+    private int GetNextAvailGrenadeSpot()
+    {
+        for (int i = 0; i < GRENADE_COUNT; i++)
+        {
+            if(inventory[GRENADES][i] == null)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private bool AllGrenadeSpotsTaken()
+    {
+        foreach(GameObject grenadeSpot in inventory[GRENADES])
+        {
+            if(grenadeSpot == null)
+            {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -284,12 +380,23 @@ public class InventoryScript : MonoBehaviour
         {
             return false;
         }
-        if (inventory[BOMB] != null)
+        if (inventory[BOMB][0] != null)
         {
             RemoveWeapon(BOMB);
         }
-        inventory[BOMB] = bomb;
+        inventory[BOMB][0] = bomb;
         return true;
+    }
+
+    private void PrepareWeaponForAddToPlayer(GameObject wepToPrep)
+    {
+        wepToPrep.transform.position = this.transform.position;
+        wepToPrep.transform.rotation = this.transform.rotation;
+        wepToPrep.transform.parent = this.transform;
+        wepToPrep.GetComponent<Rigidbody>().useGravity = false;
+        wepToPrep.GetComponent<Rigidbody>().isKinematic = true;
+        wepToPrep.GetComponent<Rigidbody>().detectCollisions = false;
+        wepToPrep.GetComponent<Collider>().enabled = false;
     }
 
     /// <summary>
@@ -298,13 +405,36 @@ public class InventoryScript : MonoBehaviour
     /// <param name="col"></param>
     private void OnTriggerEnter(Collider col)
     {
-        if(col.gameObject.GetComponentInChildren<Weapon>() != null)
+        if (autoPickup)
         {
-            PickupWeapon(col.gameObject);
+            if (col.gameObject.GetComponentInChildren<Weapon>() != null)
+            {
+                PickupWeapon(col.gameObject);
+            }
+            else if (col.gameObject.GetComponentInChildren<Grenades>() != null)
+            {
+                PickupGrenade(col.gameObject);
+            }
         }
-        else if (col.gameObject.GetComponentInChildren<Grenades>() != null)
+    }
+
+
+    /// <summary>
+    /// Collider that is being used to pickup weapons.
+    /// </summary>
+    /// <param name="col"></param>
+    private void OnTriggerStay(Collider col)
+    {
+        if (autoPickup)
         {
-            PickupGrenade(col.gameObject);
+            if (col.gameObject.GetComponentInChildren<Weapon>() != null)
+            {
+                PickupWeapon(col.gameObject);
+            }
+            else if (col.gameObject.GetComponentInChildren<Grenades>() != null)
+            {
+                PickupGrenade(col.gameObject);
+            }
         }
     }
 
@@ -316,17 +446,19 @@ public class InventoryScript : MonoBehaviour
     private void PickupWeapon(GameObject weaponToPickup)
     {
         Weapon wepInfo = weaponToPickup.GetComponent<Weapon>();
-        if(inventory[wepInfo.weaponSlot] == null)
+        if(inventory[wepInfo.weaponSlot][0] == null)
         {
-            weaponToPickup.transform.position = this.transform.position;
-            weaponToPickup.transform.rotation = this.transform.rotation;
-            weaponToPickup.transform.parent = this.transform;
-            weaponToPickup.GetComponent<Rigidbody>().useGravity = false;
-            weaponToPickup.GetComponent<Rigidbody>().isKinematic = true;
-            weaponToPickup.GetComponent<Rigidbody>().detectCollisions = false;
-            weaponToPickup.GetComponent<Collider>().enabled = false;
+            //weaponToPickup.transform.position = this.transform.position;
+            //weaponToPickup.transform.rotation = this.transform.rotation;
+            //weaponToPickup.transform.parent = this.transform;
+            //weaponToPickup.GetComponent<Rigidbody>().useGravity = false;
+            //weaponToPickup.GetComponent<Rigidbody>().isKinematic = true;
+            //weaponToPickup.GetComponent<Rigidbody>().detectCollisions = false;
+            //weaponToPickup.GetComponent<Collider>().enabled = false;\
 
-            inventory[wepInfo.weaponSlot] = weaponToPickup;
+            PrepareWeaponForAddToPlayer(weaponToPickup);
+
+            inventory[wepInfo.weaponSlot][0] = weaponToPickup;
 
             this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
         }
@@ -340,19 +472,16 @@ public class InventoryScript : MonoBehaviour
     private void PickupGrenade(GameObject grenadeToPickup)
     {
         Grenades grenadeInfo = grenadeToPickup.GetComponent<Grenades>();
-        if (inventory[grenadeInfo.weaponSlot] == null)
+        for (int i = 0; i < GRENADE_COUNT; i++)
         {
-            grenadeToPickup.transform.position = this.transform.position;
-            grenadeToPickup.transform.rotation = this.transform.rotation;
-            grenadeToPickup.transform.parent = this.transform;
-            grenadeToPickup.GetComponent<Rigidbody>().useGravity = false;
-            grenadeToPickup.GetComponent<Rigidbody>().isKinematic = true;
-            grenadeToPickup.GetComponent<Rigidbody>().detectCollisions = false;
-            grenadeToPickup.GetComponent<Collider>().enabled = false;
+            if (inventory[grenadeInfo.weaponSlot][i] == null)
+            {
+                PrepareWeaponForAddToPlayer(grenadeToPickup);
 
-            inventory[grenadeInfo.weaponSlot] = grenadeToPickup;
+                inventory[grenadeInfo.weaponSlot][i] = grenadeToPickup;
 
-            this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+                this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+            }
         }
     }
 }

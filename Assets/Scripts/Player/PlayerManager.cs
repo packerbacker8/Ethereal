@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerSetup))]
 public class PlayerManager : NetworkBehaviour
 {
+    public int money = 1000;
     public int maxHealth = 100;
     public bool Dead
     {

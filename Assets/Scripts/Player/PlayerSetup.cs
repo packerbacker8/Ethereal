@@ -27,8 +27,9 @@ public class PlayerSetup : NetworkBehaviour
         {
             //create player ui
             playerUI = Instantiate(playerUIPrefab);
-            playerUI.name = "PlayerUI";
+            playerUI.name = "PlayerUI";            
             this.GetComponent<PlayerManager>().SetupPlayer();
+            playerUI.GetComponent<PlayerUIScript>().SetPlayer(this.gameObject);
         }
 
     }
