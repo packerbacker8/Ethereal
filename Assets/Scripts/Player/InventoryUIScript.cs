@@ -54,6 +54,10 @@ public class InventoryUIScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Function called at the creation of the player UI to let the script know which player it is for.
+    /// </summary>
+    /// <param name="player"></param>
     public void SetPlayerTarget(GameObject player)
     {
         this.player = player;
@@ -62,9 +66,13 @@ public class InventoryUIScript : MonoBehaviour
         inventorySlotNames = playerInventory.GetAllInventorySlotNames();
     }
 
+    /// <summary>
+    /// Function called anytime the full inventory and money UI need to be displayed for the player.
+    /// </summary>
     public void InventoryActionPerformed()
     {
         inventoryAndMoneyPanel.SetActive(true);
+        overallInventoryUI.SetActive(true);
         disappearTimer = inventoryDisappearTime;
         startDisappearingTimer = timeBeforeStartDisappearing;
         uiOpacity = 1.0f;
@@ -157,6 +165,25 @@ public class InventoryUIScript : MonoBehaviour
         SetUIOpacity();
     }
 
+    /// <summary>
+    /// Function used to update and show the text representing the player's 
+    /// current money without displaying the rest of the inventory.
+    /// </summary>
+    public void UpdateAndShowMoneyText()
+    {
+        inventoryAndMoneyPanel.SetActive(true);
+        overallInventoryUI.SetActive(false);
+        disappearTimer = inventoryDisappearTime;
+        startDisappearingTimer = timeBeforeStartDisappearing;
+        uiOpacity = 1.0f;
+        playerMoneyText.text = "$" + playerManager.GetCurrentPlayerMoney();
+        playerMoneyText.color = new Color(1, 1, 1, uiOpacity);
+    }
+
+    /// <summary>
+    /// Set opacity of all image objects on the inventory UI so that
+    /// the images may fade out over a set amount of time.
+    /// </summary>
     private void SetUIOpacity()
     {
         playerMoneyText.color = new Color(1, 1, 1, uiOpacity);
