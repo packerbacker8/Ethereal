@@ -132,4 +132,9 @@ MonoBehaviour:
   matchSettings:
     respawnTime: 3
     roundTIme: 200
+    buyPeriod: 30
+    maxPersonalMoney: 20000
+    maxTeamMoney: 100000
+    startPersonalMoney: 800
+    startTeamMoney: 0
   worldCamera: {fileID: 1892090297863300}

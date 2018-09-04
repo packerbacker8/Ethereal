@@ -22,4 +22,8 @@ public class MatchSettings
     /// items.
     /// </summary>
     public int maxTeamMoney = 100000;
+
+    public int startPersonalMoney = 1000;
+
+    public int startTeamMoney = 0;
 }

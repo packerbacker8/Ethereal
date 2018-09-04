@@ -40,7 +40,6 @@ public class WeaponManager : NetworkBehaviour
             Debug.LogError("No InventoryScript found on this player: " + this.name);
             return;
         }
-        inventory.SetupInventory();
         weaponsEquipped = new List<string>();
         weapons = new List<GameObject>();
         inventorySlotStrings = inventory.GetAllInventorySlotNames();

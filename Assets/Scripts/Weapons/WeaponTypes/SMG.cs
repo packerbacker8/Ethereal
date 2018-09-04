@@ -14,7 +14,5 @@ public class SMG : Weapon
     public override void SetupWeapon()
     {
         base.SetupWeapon();
-        killValue = 400;
-        teamValue = 150;
     }
 }

@@ -22,6 +22,7 @@ public class InventoryScript : MonoBehaviour
     public const int GRENADE_COUNT = 4;
 
     private GameObject playerCam;
+    private InventoryUIScript inventoryUi;
 
     private Dictionary<string, GameObject[]> inventory;
 
@@ -30,7 +31,7 @@ public class InventoryScript : MonoBehaviour
         playerCam = this.transform.parent.gameObject;
     }
 
-    public void SetupInventory()
+    public void SetupInventory(GameObject playerUIObj)
     {
         inventory = new Dictionary<string, GameObject[]>() {
             { PRIMARY, new GameObject[] {null} }, 
@@ -71,6 +72,15 @@ public class InventoryScript : MonoBehaviour
                 }
             }
         }
+        if(playerUIObj == null)
+        {
+            Debug.LogError("Player UI was null in the set up of the inventory script.");
+        }
+        else
+        {
+            inventoryUi = playerUIObj.GetComponent<InventoryUIScript>();
+        }
+
     }
 
     private void Update()
@@ -124,6 +134,7 @@ public class InventoryScript : MonoBehaviour
 
     public GameObject GetWeapon(string slot, int grenadeIndex = 0)
     {
+        //inventoryUi.InventoryActionPerformed();
         switch (slot)
         {
             case PRIMARY:
@@ -212,6 +223,7 @@ public class InventoryScript : MonoBehaviour
         wepToRemove.GetComponent<Rigidbody>().AddTorque(wepToRemove.transform.forward * 1000f);
         wepToRemove.GetComponent<Collider>().enabled = true;
         this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+        inventoryUi.InventoryActionPerformed();
     }
 
     public void ClearInventory()
@@ -227,67 +239,35 @@ public class InventoryScript : MonoBehaviour
 
     public bool SetWeapon(string slot, GameObject wep, int grenadeIndex = 0)
     {
+        bool success;
         switch (slot)
         {
             case PRIMARY:
-                if (SetPrimaryWeapon(wep))
-                {
-                    PrepareWeaponForAddToPlayer(wep);
-                    this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                success = SetPrimaryWeapon(wep);
+                break;
             case SECONDARY:
-                if (SetSecondaryWeapon(wep))
-                {
-                    PrepareWeaponForAddToPlayer(wep);
-                    this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                success = SetSecondaryWeapon(wep);
+                break;
             case KNIFE:
-                if (SetKnifeWeapon(wep))
-                {
-                    PrepareWeaponForAddToPlayer(wep);
-                    this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                success = SetKnifeWeapon(wep);
+                break;
             case GRENADES:
-                if (SetGrenade(wep, grenadeIndex % GRENADE_COUNT))
-                {
-                    PrepareWeaponForAddToPlayer(wep);
-                    this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                success = SetGrenade(wep, grenadeIndex % GRENADE_COUNT);
+                break;
             case BOMB:
-                if (SetObjectiveBomb(wep))
-                {
-                    PrepareWeaponForAddToPlayer(wep);
-                    this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                success = SetObjectiveBomb(wep);
+                break;
             default:
                 Debug.LogError("This is not a recognized inventory slot: " + slot);
                 return false;
         }
+        if (success)
+        {
+            PrepareWeaponForAddToPlayer(wep);
+            this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+            inventoryUi.InventoryActionPerformed();
+        }
+        return success;
     }
 
     private bool SetPrimaryWeapon(GameObject wep)
@@ -461,6 +441,7 @@ public class InventoryScript : MonoBehaviour
             inventory[wepInfo.weaponSlot][0] = weaponToPickup;
 
             this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+            inventoryUi.InventoryActionPerformed();
         }
     }
 
@@ -481,6 +462,7 @@ public class InventoryScript : MonoBehaviour
                 inventory[grenadeInfo.weaponSlot][i] = grenadeToPickup;
 
                 this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
+                inventoryUi.InventoryActionPerformed();
             }
         }
     }

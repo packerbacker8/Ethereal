@@ -6,7 +6,6 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerSetup))]
 public class PlayerManager : NetworkBehaviour
 {
-    public int money = 1000;
     public int maxHealth = 100;
     public bool Dead
     {
@@ -22,6 +21,8 @@ public class PlayerManager : NetworkBehaviour
 
     [SyncVar]
     private int currentHealth;
+    [SyncVar]
+    private int currentMoney;
 
     [SyncVar]
     private bool isDead = false;
@@ -49,7 +50,7 @@ public class PlayerManager : NetworkBehaviour
         {
             this.GetComponent<PlayerSetup>().GetPlayerUI().SetActive(true);
             GameManager.instance.SetWorldCameraActive(false);
-        CmdBroadCastNewPlayerSetup();
+            CmdBroadCastNewPlayerSetup();
         }
 
     }
@@ -172,6 +173,7 @@ public class PlayerManager : NetworkBehaviour
             this.GetComponent<Rigidbody>().useGravity = true;
         }
         currentHealth = maxHealth;
+        currentMoney = GameManager.instance.matchSettings.startPersonalMoney;
         if (playerUI != null)
         {
             playerUI.SetHealth(1f);
@@ -189,5 +191,14 @@ public class PlayerManager : NetworkBehaviour
 
         GameObject spwnEff = Instantiate(spawnEffect, this.transform.position, Quaternion.identity);
         Destroy(spwnEff, 3f);
+    }
+
+    /// <summary>
+    /// Returns how much money the player currently has to use.
+    /// </summary>
+    /// <returns></returns>
+    public int GetCurrentPlayerMoney()
+    {
+        return currentMoney;
     }
 }

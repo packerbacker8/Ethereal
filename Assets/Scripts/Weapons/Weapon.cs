@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 [System.Serializable]
 public abstract class Weapon : MonoBehaviour
@@ -23,6 +24,7 @@ public abstract class Weapon : MonoBehaviour
     public int teamValue = 100;
 
     public GameObject weaponGraphics;
+    public Sprite uiIcon;
 
     public float[] SprayPatternX
     {

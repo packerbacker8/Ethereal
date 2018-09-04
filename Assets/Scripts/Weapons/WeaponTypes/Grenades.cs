@@ -20,6 +20,7 @@ public class Grenades : NetworkBehaviour
     public int numAbleToEquip = 1;
 
     public GameObject weaponGraphics;
+    public Sprite uiIcon;
 
     protected virtual void Start()
     {

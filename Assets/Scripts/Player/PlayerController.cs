@@ -66,7 +66,7 @@ public class PlayerController : MonoBehaviour
         float zMovement = (backwardMove ? -1 : 0) + (forwardMove ? 1 : 0);
         float yRotation = Input.GetAxisRaw("Mouse X");
         float xRotation = Input.GetAxisRaw("Mouse Y");
-        bool jumping = Input.GetKey(jump);
+        bool jumping = Input.GetKeyDown(jump);
 
         isGrounded = CheckIfGrounded();
         HandleWalking();

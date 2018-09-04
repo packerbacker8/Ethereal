@@ -375,6 +375,7 @@ MonoBehaviour:
   killValue: 300
   teamValue: 100
   weaponGraphics: {fileID: 1190596046915358}
+  uiIcon: {fileID: 21300000, guid: 7c001bc59d9dc0845a12e0d379267f20, type: 3}
   WeaponType: SMG
 --- !u!198 &198562949118693240
 ParticleSystem:
