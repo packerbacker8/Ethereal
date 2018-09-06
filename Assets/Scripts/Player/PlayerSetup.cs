@@ -30,7 +30,7 @@ public class PlayerSetup : NetworkBehaviour
             playerUI.name = "PlayerUI";            
             this.GetComponent<PlayerManager>().SetupPlayer();
             this.GetComponentInChildren<InventoryScript>().SetupInventory(playerUI);
-            playerUI.GetComponent<PlayerUIScript>().SetPlayer(this.gameObject);
+            playerUI.GetComponent<PlayerUIScript>().SetUpPlayerUIScript(this.gameObject);
             playerUI.GetComponent<InventoryUIScript>().SetPlayerTarget(this.gameObject);
             playerUI.GetComponent<InventoryUIScript>().InventoryActionPerformed();
         }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerUIScript : MonoBehaviour
 {
@@ -23,36 +24,6 @@ public class PlayerUIScript : MonoBehaviour
     public GameObject handgunObj;
     public GameObject grenadeObj;
 
-    [Header("Personal Weapon Prefabs")]
-    public GameObject ak47Obj;
-    public GameObject m416Obj;
-    public GameObject m16a4Obj;
-    public GameObject m60Obj;
-    public GameObject m249Obj;
-    public GameObject ump45Obj;
-    public GameObject vectorObj;
-    public GameObject uziObj;
-    public GameObject mp9Obj;
-    public GameObject spas12Obj;
-    public GameObject overunderObj;
-    public GameObject mag7Obj;
-    public GameObject ksgObj;
-    public GameObject cal50Obj;
-    public GameObject m24Obj;
-    public GameObject glockObj;
-    public GameObject m9Obj;
-    public GameObject desertEagleObj;
-    public GameObject rexObj;
-    [Header("Grenade Prefabs")]
-    public GameObject fragObj;
-    public GameObject flashObj;
-    public GameObject flameObj;
-    public GameObject smokeObj;
-
-    [Header("Team Item Prefabs")]
-    public GameObject orbitalLaserStrikeObj;
-    public GameObject teamProtectionDomeObj;
-
     public static bool IsInEconomyMenu;
 
 
@@ -64,21 +35,55 @@ public class PlayerUIScript : MonoBehaviour
 
     private GameObject player;
     private InventoryScript playerInventory;
+    private PlayerManager playerManager;
 
-    public void SetPlayer(GameObject player)
+    private Dictionary<string, GameObject> personalWeaponPrefabs;
+    private Dictionary<string, GameObject> grenadePrefabs;
+    private Dictionary<string, GameObject> teamItemPrefabs;
+
+    private List<GameObject> listPersonalWepBuyMenuObjs;
+
+    private int currentMoney;
+
+    public void SetUpPlayerUIScript(GameObject player)
     {
         this.player = player;
         playerInventory = this.player.GetComponentInChildren<InventoryScript>();
-    }
+        playerManager = this.player.GetComponentInChildren<PlayerManager>();
 
-    // Use this for initialization
-    void Start()
-    {
+        personalWeaponPrefabs = new Dictionary<string, GameObject>();
+        grenadePrefabs = new Dictionary<string, GameObject>();
+        teamItemPrefabs = new Dictionary<string, GameObject>();
+
+        Object[] tempWeps = Resources.LoadAll("PersonalWeapons");
+        //Object[] tempGrenades = Resources.LoadAll("Grenades");
+        //Object[] tempTeam = Resources.LoadAll("TeamItems");
+
+        foreach (Object wep in tempWeps)
+        {
+            GameObject wepGO = wep as GameObject;
+            string wepName = wepGO.GetComponent<Weapon>().weaponName;
+            personalWeaponPrefabs.Add(wepName, wepGO);
+        }
+
+        listPersonalWepBuyMenuObjs = new List<GameObject>
+        {
+            assaultRifleObj,
+            hmgObj,
+            smgObj,
+            shotgunObj,
+            sniperObj,
+            handgunObj
+        };
+
+
         healthFill.localScale = Vector3.one;
         PauseMenu.isPaused = false;
         IsInEconomyMenu = false;
         ToggleOffAllMenus();
         SetCursorCombatMode();
+
+        PlayerMoneyChanged();
     }
 
     private void Update()
@@ -112,7 +117,7 @@ public class PlayerUIScript : MonoBehaviour
                     personalBuyObj.SetActive(true);
                 }
                 // in one deeper from economy menu
-                else if(personalSellObj.activeInHierarchy || personalBuyObj.activeInHierarchy || teamBuyObj.activeInHierarchy)
+                else if (personalSellObj.activeInHierarchy || personalBuyObj.activeInHierarchy || teamBuyObj.activeInHierarchy)
                 {
                     personalBuyObj.SetActive(false);
                     personalSellObj.SetActive(false);
@@ -144,6 +149,16 @@ public class PlayerUIScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Notify the UI that the amount of money available to the player has changed and to update it.
+    /// Also updates buttons of menus to the correct interactable or not state.
+    /// </summary>
+    public void PlayerMoneyChanged()
+    {
+        currentMoney = playerManager.GetCurrentPlayerMoney();
+        SetInteractableStateOfBuyButtons();
+    }
+
     public void SetHealth(float amount)
     {
         healthFill.localScale = new Vector3(amount, 1, 1);
@@ -158,7 +173,7 @@ public class PlayerUIScript : MonoBehaviour
     public void OpenPersonalSellMenu()
     {
         economyObj.SetActive(false);
-        personalSellObj.SetActive(true);        
+        personalSellObj.SetActive(true);
     }
 
     public void OpenTeamBuyMenu()
@@ -209,24 +224,63 @@ public class PlayerUIScript : MonoBehaviour
         grenadeObj.SetActive(true);
     }
 
-    public void BuyAk47()
+    /// <summary>
+    /// Buy the correct prefabbed weapon based on the weapon name.
+    /// </summary>
+    /// <param name="wepName">This is the weapon name that corresponds to 
+    /// the weapon name assigned to the weapon prefab under its weaponName variable.</param>
+    public void BuyPersonalWeapon(string wepName)
     {
-        GameObject ak47 = Instantiate(ak47Obj);
-        ak47.name = ak47Obj.name;
-        if(!playerInventory.SetWeapon(ak47.GetComponent<Weapon>().weaponSlot, ak47))
+        GameObject wepBought = Instantiate(personalWeaponPrefabs[wepName]);
+        wepBought.name = personalWeaponPrefabs[wepName].name;
+        if (!playerInventory.SetWeapon(wepBought.GetComponent<Weapon>().weaponSlot, wepBought))
         {
-            Debug.LogError(ak47.name + " not successfully added");
+            Debug.LogError(wepBought.name + " not successfully added");
+        }
+        else
+        {
+            playerManager.AdjustPlayerMoney(wepBought.GetComponent<Weapon>().cost * -1);
         }
     }
 
-    public void BuyUmp45()
+    /// <summary>
+    /// Sell the equipped primary inventory item of the player, if there is one available.
+    /// </summary>
+    public void SellPrimaryWeapon()
     {
-        GameObject ump45 = Instantiate(ump45Obj);
-        ump45.name = ump45Obj.name;
-        if(!playerInventory.SetWeapon(ump45.GetComponent<Weapon>().weaponSlot, ump45))
+        GameObject weaponSold = playerInventory.RemoveWeapon(InventoryScript.PRIMARY);
+        //nothing was sold as there was no gun there, this shouldn't happen tho as the button should be not activatable
+        if(weaponSold == null)
         {
-            Debug.LogError(ump45.name + " not successfully added");
+            return;
         }
+        Weapon wep = weaponSold.GetComponent<Weapon>();
+        playerManager.AdjustPlayerMoney((int)Mathf.Floor(wep.cost * wep.sellBackRatio));
+        Destroy(weaponSold);
+    }
+
+    /// <summary>
+    /// Sell the equipped secondary inventory item of the player, if there is one available.
+    /// </summary>
+    public void SellSecondaryWeapon()
+    {
+        GameObject weaponSold = playerInventory.RemoveWeapon(InventoryScript.SECONDARY);
+        //nothing was sold as there was no gun there, this shouldn't happen tho as the button should be not activatable
+        if (weaponSold == null)
+        {
+            return;
+        }
+        Weapon wep = weaponSold.GetComponent<Weapon>();
+        playerManager.AdjustPlayerMoney((int)Mathf.Floor(wep.cost * wep.sellBackRatio));
+        Destroy(weaponSold);
+    }
+
+    //TODO: set up sell grenade button to take to new menu that has you pick which grenade to sell
+    //and has a specific script attached to that menu that sends back to this script the value
+    //of the index of that grenade to sell
+    public void SellAGrenade()
+    {
+
     }
 
     /// <summary>
@@ -365,5 +419,66 @@ public class PlayerUIScript : MonoBehaviour
         {
             SetCursorCombatMode();
         }
+    }
+
+    /// <summary>
+    /// Adjusts the interactable state of buy buttons in the menus. If the player
+    /// doesn't have enough money, the button will be not interactable.
+    /// </summary>
+    private void SetInteractableStateOfBuyButtons()
+    {
+        foreach(GameObject wepBuyMenu in listPersonalWepBuyMenuObjs)
+        {
+            for (int i = 0; i < wepBuyMenu.transform.childCount; i++)
+            {
+                GameObject buyButton = wepBuyMenu.transform.GetChild(i).gameObject;
+                Button button = buyButton.GetComponent<Button>();
+                if (personalWeaponPrefabs.ContainsKey(buyButton.GetComponent<BuyWeaponButtonScript>().weaponName))
+                {
+                    Weapon wepToCheck = personalWeaponPrefabs[buyButton.GetComponent<BuyWeaponButtonScript>().weaponName].GetComponent<Weapon>();
+                    if (wepToCheck.cost > currentMoney)
+                    {
+                        button.interactable = false;
+                    }
+                    else
+                    {
+                        button.interactable = true;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("personalWeaponPrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
+                    button.interactable = false;
+                }
+            }
+        }
+
+        for (int i = 0; i < grenadeObj.transform.childCount; i++)
+        {
+            GameObject buyButton = grenadeObj.transform.GetChild(i).gameObject;
+            Button button = buyButton.GetComponent<Button>();
+            if (grenadePrefabs.ContainsKey(buyButton.GetComponent<BuyWeaponButtonScript>().weaponName))
+            {
+                Grenades grenadeToCheck = grenadePrefabs[buyButton.GetComponent<BuyWeaponButtonScript>().weaponName].GetComponent<Grenades>();
+                if (grenadeToCheck.cost > currentMoney)
+                {
+                    button.interactable = false;
+                }
+                else
+                {
+                    button.interactable = true;
+                }
+            }
+            else
+            {
+                Debug.LogError("grenadePrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
+                button.interactable = false;
+            }
+        }
+        /* this will be for the team menu stuff in the future
+        for (int i = 0; i < assaultRifleObj.transform.childCount; i++)
+        {
+
+        }*/
     }
 }

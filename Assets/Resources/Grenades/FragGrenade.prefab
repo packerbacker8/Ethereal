@@ -535,6 +535,7 @@ MonoBehaviour:
   teamValue: 50
   numAbleToEquip: 1
   weaponGraphics: {fileID: 1722146853798556}
+  uiIcon: {fileID: 0}
   explosionEffect: {fileID: 1657054408596798}
 --- !u!135 &135338623379026746
 SphereCollider:

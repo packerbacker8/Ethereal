@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class InventoryUIScript : MonoBehaviour
 {
+    [Header("Inventory UI Objects")]
     public GameObject inventoryAndMoneyPanel;
     public GameObject overallInventoryUI;
     public GameObject primaryWepImageObj;
@@ -169,7 +170,7 @@ public class InventoryUIScript : MonoBehaviour
     /// Function used to update and show the text representing the player's 
     /// current money without displaying the rest of the inventory.
     /// </summary>
-    public void UpdateAndShowMoneyText()
+    public void PlayerMoneyChanged()
     {
         inventoryAndMoneyPanel.SetActive(true);
         overallInventoryUI.SetActive(false);

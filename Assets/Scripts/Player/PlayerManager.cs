@@ -52,7 +52,6 @@ public class PlayerManager : NetworkBehaviour
             GameManager.instance.SetWorldCameraActive(false);
             CmdBroadCastNewPlayerSetup();
         }
-
     }
 
     [Command]
@@ -173,7 +172,7 @@ public class PlayerManager : NetworkBehaviour
             this.GetComponent<Rigidbody>().useGravity = true;
         }
         currentHealth = maxHealth;
-        currentMoney = GameManager.instance.matchSettings.startPersonalMoney;
+        SetCurrentPlayerMoney(GameManager.instance.matchSettings.startPersonalMoney);
         if (playerUI != null)
         {
             playerUI.SetHealth(1f);
@@ -194,11 +193,34 @@ public class PlayerManager : NetworkBehaviour
     }
 
     /// <summary>
-    /// Returns how much money the player currently has to use.
+    /// Returns the current value of the players money.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Integer value of the current money available.</returns>
     public int GetCurrentPlayerMoney()
     {
         return currentMoney;
+    }
+
+    /// <summary>
+    /// Set the player's money to a whole new amount, a direct equal operation.
+    /// </summary>
+    /// <param name="newAmount">The new amount the player's money will be set to.</param>
+    public void SetCurrentPlayerMoney(int newAmount)
+    {
+        currentMoney = newAmount;
+        playerUI.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
+    }
+
+    /// <summary>
+    /// Adjust the player's money by some amount. Note this is always the player's
+    /// current money plus some given value. So to take away money, pass a negative
+    /// number.
+    /// </summary>
+    /// <param name="val">Positive or negative integer representing how much to 
+    /// change the player's current money by.</param>
+    public void AdjustPlayerMoney(int val)
+    {
+        currentMoney += val;
+        playerUI.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
     }
 }

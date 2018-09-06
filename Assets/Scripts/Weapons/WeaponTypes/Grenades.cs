@@ -14,7 +14,9 @@ public class Grenades : NetworkBehaviour
     public float armorPenetration = 0.1f;
     public float damageRadius = 100f;
     public float throwDistance = 100f;
+    public float sellBackRatio = 0.5f;
 
+    public int cost = 200;
     public int killValue = 500;
     public int teamValue = 50;
     public int numAbleToEquip = 1;

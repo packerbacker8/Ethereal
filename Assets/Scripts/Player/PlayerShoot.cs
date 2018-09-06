@@ -217,6 +217,11 @@ public class PlayerShoot : NetworkBehaviour
         {
             return;
         }
+        if(weapon.totalAmmo <= 0)
+        {
+            //play an out of ammo sound
+            return;
+        }
         reloading = true;
         reloadTime = 0;
     }

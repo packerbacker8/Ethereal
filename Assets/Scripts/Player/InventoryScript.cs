@@ -183,9 +183,9 @@ public class InventoryScript : MonoBehaviour
         return inventory[BOMB][0];
     }
 
-    public void RemoveWeapon(string slot, int grenadeIndex = 0)
+    public GameObject RemoveWeapon(string slot, int grenadeIndex = 0)
     {
-        GameObject wepToRemove;
+        GameObject wepToRemove = null;
         switch (slot)
         {
             case PRIMARY:
@@ -210,8 +210,13 @@ public class InventoryScript : MonoBehaviour
                 break;
             default:
                 Debug.LogError("This is not a recognized inventory slot: " + slot);
-                return;
+                break;
         }
+        if(wepToRemove == null)
+        {
+            return wepToRemove;
+        }
+
         wepToRemove.transform.parent = null;
         Util.SetLayerRecusively(wepToRemove, LayerMask.NameToLayer(WORLD_OBJECT_LAYER));
         wepToRemove.transform.position = wepToRemove.transform.position + wepToRemove.transform.forward * (this.GetComponent<SphereCollider>().radius * 2.5f);
@@ -224,6 +229,7 @@ public class InventoryScript : MonoBehaviour
         wepToRemove.GetComponent<Collider>().enabled = true;
         this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
         inventoryUi.InventoryActionPerformed();
+        return wepToRemove;
     }
 
     public void ClearInventory()

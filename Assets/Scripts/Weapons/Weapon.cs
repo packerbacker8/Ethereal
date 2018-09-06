@@ -16,10 +16,12 @@ public abstract class Weapon : MonoBehaviour
     public float roundsPerMinute = 600f; //fires once every tenth of a second
     public float timeToReload = 2.5f; //2 and half seconds
     public float settleTime = 0.25f; // every quarter a second go back one index on the spray if not shooting
+    public float sellBackRatio = 0.5f;
 
     public int ammo = 30;
     public int currentAmmo = 30;
     public int totalAmmo = 240;
+    public int cost = 2700;
     public int killValue = 300;
     public int teamValue = 100;
 
