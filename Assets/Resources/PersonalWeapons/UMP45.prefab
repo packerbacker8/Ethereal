@@ -369,13 +369,15 @@ MonoBehaviour:
   roundsPerMinute: 666
   timeToReload: 0.5
   settleTime: 0.25
-  sellBackRatio: 0.75
+  settleAmount: 0.15
+  kickDir: {x: 0.25, y: 0.35, z: 0}
   ammo: 25
   currentAmmo: 25
   totalAmmo: 125
   cost: 1200
   killValue: 300
   teamValue: 100
+  sellBackRatio: 0.75
   weaponGraphics: {fileID: 1190596046915358}
   uiIcon: {fileID: 21300000, guid: 7c001bc59d9dc0845a12e0d379267f20, type: 3}
   WeaponType: SMG

@@ -428,14 +428,15 @@ MonoBehaviour:
   roundsPerMinute: 600
   timeToReload: 2.5
   settleTime: 0.2
-  camSettleAmount: 0.3
-  sellBackRatio: 0.5
+  settleAmount: 0.11
+  kickDir: {x: 0.05, y: 0.5, z: 0}
   ammo: 30
   currentAmmo: 30
   totalAmmo: 240
   cost: 2700
   killValue: 300
   teamValue: 100
+  sellBackRatio: 0.5
   weaponGraphics: {fileID: 1582203490615790}
   uiIcon: {fileID: 21300000, guid: e5b15dc333b00414b8f7e732602926b3, type: 3}
   WeaponType: Assault Rifle

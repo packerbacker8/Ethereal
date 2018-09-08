@@ -48,7 +48,7 @@ public class PlayerShoot : NetworkBehaviour
     private void Start()
     {
         cam = this.GetComponentInChildren<Camera>();
-        if(cam == null)
+        if (cam == null)
         {
             Debug.LogError("Player shoot: no camera referenced");
             this.enabled = false;
@@ -69,45 +69,42 @@ public class PlayerShoot : NetworkBehaviour
         shooting = Input.GetKey(primaryAction);
         tryReload = Input.GetKeyDown(reload);
 
-        if(tryReload && !reloading && currentAmmo < weapon.ammo && isLocalPlayer)
+        if (tryReload && !reloading && currentAmmo < weapon.ammo && isLocalPlayer)
         {
             StartReload();
         }
         else if (reloading)
         {
             reloadTime += Time.deltaTime;
-            if(reloadTime >= weapon.timeToReload)
+            if (reloadTime >= weapon.timeToReload)
             {
                 FinishReload();
             }
         }
 
+        if(shooting && timeSinceLastShot != 0)
+        {
+            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x * weapon.settleAmount * -1, 0));
+            motor.AddShootingMotionY(weapon.kickDir.y * weapon.settleAmount * -1);
+        }
         if (shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0)
         {
-            if (motor.isMoving)
-            {
-                motor.AddShootingMotionX(new Vector3(0, weapon.MovingSprayPatternX[sprayIndex], 0));
-                motor.AddShootingMotionY(weapon.MovingSprayPatternY[sprayIndex]);
-            }
-            else
-            {
-                motor.AddShootingMotionX(new Vector3(0, weapon.SprayPatternX[sprayIndex], 0));
-                motor.AddShootingMotionY(weapon.SprayPatternY[sprayIndex]);
-            }
+            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x, 0));
+            motor.AddShootingMotionY(weapon.kickDir.y);
             Shoot();
         }
-        else     // if (!shooting || currentAmmo == 0)
+        else if (!shooting || currentAmmo == 0 || reloading)
         {
-            if(sprayIndex != 0)
+            if (sprayIndex != 0)
             {
                 spraySettleTime += Time.deltaTime;
                 if (spraySettleTime > weapon.settleTime)
                 {
                     sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
                     spraySettleTime = 0;
-                    //motor.AddShootingMotionX(new Vector3(0, weapon.SettlePatternX[sprayIndex], 0));
-                    //motor.AddShootingMotionY(weapon.SettlePatternY[sprayIndex]);
+                    
                 }
+
             }
             motor.AddShootingMotionX(Vector3.zero);
             motor.AddShootingMotionY(0);
@@ -131,7 +128,7 @@ public class PlayerShoot : NetworkBehaviour
     [ClientRpc]
     private void RpcDoShootEffect()
     {
-        if(weapon == null)
+        if (weapon == null)
         {
             //WeaponChanged();
             return;
@@ -195,7 +192,7 @@ public class PlayerShoot : NetworkBehaviour
         {
             sprayVal = new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
         }
-        Vector3 dir = cam.transform.forward; // + sprayVal;
+        Vector3 dir = cam.transform.forward + sprayVal;
         if (showSprayLines)
         {
             Debug.DrawLine(startPos, dir * weapon.range, new Color(0.0333f * (sprayIndex + 1), 0, 0, 1), 10);
@@ -209,7 +206,7 @@ public class PlayerShoot : NetworkBehaviour
             }
             //Hit something, call on hit to draw effect for all players
             CmdOnHitEffect(hit.point, hit.normal);
-        }        
+        }
         spraySettleTime = 0;
         sprayIndex++;
         if (sprayIndex > weapon.SprayPatternX.Length - 1)
@@ -227,11 +224,11 @@ public class PlayerShoot : NetworkBehaviour
 
     private void StartReload()
     {
-        if(weapon == null)
+        if (weapon == null)
         {
             return;
         }
-        if(weapon.totalAmmo <= 0)
+        if (weapon.totalAmmo <= 0)
         {
             //play an out of ammo sound
             return;
@@ -258,10 +255,10 @@ public class PlayerShoot : NetworkBehaviour
         int tries = 0;
         float timeToWait = 0.1f;
         GameObject hitEffectObj;
-        while(hitEffectPool == null && tries < 10)
+        while (hitEffectPool == null && tries < 10)
         {
             hitEffectObj = allPools.GetObjectPoolByName(HIT_EFFECT_POOL_NAME);
-            if(hitEffectObj != null)
+            if (hitEffectObj != null)
             {
                 hitEffectPool = hitEffectObj.GetComponent<ObjectPool>();
             }
@@ -283,11 +280,11 @@ public class PlayerShoot : NetworkBehaviour
 
     public void WeaponChanged()
     {
-        if(weaponManager != null)
+        if (weaponManager != null)
         {
             Weapon tempWeapon = weaponManager.GetCurrentWeapon();
             //we have no weapons
-            if(tempWeapon == null)
+            if (tempWeapon == null)
             {
                 weapon = null;
                 return;
