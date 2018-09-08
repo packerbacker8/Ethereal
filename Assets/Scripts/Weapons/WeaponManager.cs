@@ -142,21 +142,31 @@ public class WeaponManager : NetworkBehaviour
         this.SendMessage("WeaponChanged");
     }
 
+    /// <summary>
+    /// A method to set the inventory items that the player currently has so we know which are null
+    /// and which are not. Also sets the current weapon index to the highest priority one. I.e.
+    /// primary is highest, then secondary, etc, down to the objective bomb. Team items will not be
+    /// in this list.
+    /// </summary>
+    [Client]
     public void SetNonNullWeaponsFromInventory()
     {
-        weaponsEquipped.Clear();
-        weapons.Clear();
-        foreach (string slotName in inventorySlotStrings)
+        if (isLocalPlayer)
         {
-            if (inventory.GetWeapon(slotName) != null)
+            weaponsEquipped.Clear();
+            weapons.Clear();
+            foreach (string slotName in inventorySlotStrings)
             {
-                weaponsEquipped.Add(slotName);
-                weapons.Add(inventory.GetWeapon(slotName));
+                if (inventory.GetWeapon(slotName) != null)
+                {
+                    weaponsEquipped.Add(slotName);
+                    weapons.Add(inventory.GetWeapon(slotName));
+                }
             }
+            currentWeaponIndex = 0;
+            SetupWeapons();
+            amidstInventoryStuff = false;
         }
-        currentWeaponIndex = 0;
-        SetupWeapons();
-        amidstInventoryStuff = false;
     }
 
     [Client]

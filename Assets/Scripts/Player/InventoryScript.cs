@@ -13,7 +13,7 @@ public class InventoryScript : MonoBehaviour
     public const string PRIMARY = "primary";
     public const string SECONDARY = "secondary";
     public const string KNIFE = "knife";
-    public const string GRENADES = "grendades";
+    public const string GRENADES = "grenades";
     public const string BOMB = "bomb";
 
     public const string WEAPON_LAYER = "Weapon";
@@ -434,14 +434,6 @@ public class InventoryScript : MonoBehaviour
         Weapon wepInfo = weaponToPickup.GetComponent<Weapon>();
         if(inventory[wepInfo.weaponSlot][0] == null)
         {
-            //weaponToPickup.transform.position = this.transform.position;
-            //weaponToPickup.transform.rotation = this.transform.rotation;
-            //weaponToPickup.transform.parent = this.transform;
-            //weaponToPickup.GetComponent<Rigidbody>().useGravity = false;
-            //weaponToPickup.GetComponent<Rigidbody>().isKinematic = true;
-            //weaponToPickup.GetComponent<Rigidbody>().detectCollisions = false;
-            //weaponToPickup.GetComponent<Collider>().enabled = false;\
-
             PrepareWeaponForAddToPlayer(weaponToPickup);
 
             inventory[wepInfo.weaponSlot][0] = weaponToPickup;

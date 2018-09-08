@@ -24,17 +24,14 @@ public class Grenades : NetworkBehaviour
     public GameObject weaponGraphics;
     public Sprite uiIcon;
 
-    protected virtual void Start()
-    {
-        SetupWeapon();
-    }
+    protected GameObject throwingPlayer;
 
     /// <summary>
     /// Where values are set that are specific to each individual weapon and some 
     /// type specific values where applied to the entire weapon type.
     /// </summary>
-    public virtual void SetupWeapon()
+    public virtual void SetupWeapon(GameObject player)
     {
-        
+        throwingPlayer = player;
     }
 }

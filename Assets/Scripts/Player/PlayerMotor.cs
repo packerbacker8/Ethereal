@@ -11,6 +11,7 @@ public class PlayerMotor : MonoBehaviour
     private Vector3 velocity = Vector3.zero;
     private Vector3 rotation = Vector3.zero;
     private Vector3 jumpForce = Vector3.zero;
+    private Vector3 shootingMotionY = Vector3.zero;
 
     private float currentCameraRotationX = 0f;
     [SerializeField]
@@ -18,6 +19,8 @@ public class PlayerMotor : MonoBehaviour
     [SerializeField]
     private float cameraRotationXLimitMin = -85f;
     private float cameraRotationX = 0f;
+    private float shootingMotionX = 0;
+
 
     private Rigidbody rigid;
 
@@ -30,7 +33,8 @@ public class PlayerMotor : MonoBehaviour
 
     private void FixedUpdate()
     {
-        isMoving = velocity != Vector3.zero || rigid.velocity.magnitude != 0;
+        //TODO: find a way to check if player is falling or jumping to give them worse accuracy
+        isMoving = velocity != Vector3.zero || jumpForce != Vector3.zero;   // || rigid.velocity.magnitude != 0;
         PerformMovement();
         PerformRotation();
     }
@@ -58,10 +62,10 @@ public class PlayerMotor : MonoBehaviour
     /// </summary>
     private void PerformRotation()
     {
-        rigid.MoveRotation(rigid.rotation * Quaternion.Euler(rotation));
+        rigid.MoveRotation(rigid.rotation * Quaternion.Euler(rotation + shootingMotionY));
         if(cam != null)
         {
-            currentCameraRotationX += cameraRotationX;
+            currentCameraRotationX += cameraRotationX + shootingMotionX;
             currentCameraRotationX = currentCameraRotationX > cameraRotationXLimitMax ? cameraRotationXLimitMax : currentCameraRotationX;
             currentCameraRotationX = currentCameraRotationX < cameraRotationXLimitMin ? cameraRotationXLimitMin : currentCameraRotationX;
 
@@ -94,6 +98,16 @@ public class PlayerMotor : MonoBehaviour
     public void RotateCameraX(float newRotation)
     {
         cameraRotationX = newRotation;
+    }
+
+    public void AddShootingMotionX(float newShootMotionX)
+    {
+        shootingMotionX = newShootMotionX;
+    }
+
+    public void AddShootingMotionY(Vector3 newShootMotionY)
+    {
+        shootingMotionY = newShootMotionY;
     }
 
     /// <summary>

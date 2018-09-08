@@ -9,11 +9,6 @@ public class FragGrenade : Grenades
 
     //public float explosionForce;
 
-    protected override void Start()
-    {
-        base.Start();
-    }
-
     [Command]
     public void CmdExplode()
     {
@@ -31,12 +26,12 @@ public class FragGrenade : Grenades
         {
             float percentDmg = 1 - (Mathf.Abs(Vector3.Distance(this.transform.position.normalized, player.transform.position.normalized)));
             float adjustedDmg = damage * percentDmg;
-            player.RpcTakeDamage((int)adjustedDmg);
+            player.RpcTakeDamage((int)adjustedDmg, player.name, killValue, teamValue);
         }
     }
 
-    public override void SetupWeapon()
+    public override void SetupWeapon(GameObject player)
     {
-        base.SetupWeapon();
+        base.SetupWeapon(player);
     }
 }

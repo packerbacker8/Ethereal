@@ -84,6 +84,16 @@ public class PlayerShoot : NetworkBehaviour
 
         if (shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0)
         {
+            if (motor.isMoving)
+            {
+                motor.AddShootingMotionX(weapon.MovingSprayPatternX[sprayIndex]);
+                motor.AddShootingMotionY(new Vector3(0, weapon.MovingSprayPatternY[sprayIndex], 0));
+            }
+            else
+            {
+                motor.AddShootingMotionX(weapon.SprayPatternX[sprayIndex]);
+                motor.AddShootingMotionY(new Vector3(0, weapon.SprayPatternY[sprayIndex], 0));
+            }
             Shoot();
         }
         else if (!shooting)
@@ -94,7 +104,15 @@ public class PlayerShoot : NetworkBehaviour
                 if (spraySettleTime > weapon.settleTime)
                 {
                     sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
+                    spraySettleTime = 0;
+                    motor.AddShootingMotionX(weapon.SettlePatternX[sprayIndex]);
+                    motor.AddShootingMotionY(new Vector3(0, weapon.SettlePatternY[sprayIndex], 0));
                 }
+            }
+            else
+            {
+                motor.AddShootingMotionX(0);
+                motor.AddShootingMotionY(Vector3.zero);
             }
         }
         timeSinceLastShot -= Time.deltaTime;
@@ -167,11 +185,6 @@ public class PlayerShoot : NetworkBehaviour
         //we are shooting, tell server to do the shoot effects
         CmdOnShoot();
 
-        //if they are shooting after switching index can go above length of spray pattern
-        if (sprayIndex > weapon.SprayPatternX.Length - 1)
-        {
-            sprayIndex = weapon.SprayPatternX.Length - 1;
-        }
         timeSinceLastShot = weapon.GetRateOfFireTime();
         currentAmmo--;
         weapon.currentAmmo = currentAmmo;
@@ -185,7 +198,7 @@ public class PlayerShoot : NetworkBehaviour
         {
             sprayVal = new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
         }
-        Vector3 dir = cam.transform.forward + sprayVal;
+        Vector3 dir = cam.transform.forward; // + sprayVal;
         if (showSprayLines)
         {
             Debug.DrawLine(startPos, dir * weapon.range, new Color(0.0333f * (sprayIndex + 1), 0, 0, 1), 10);
@@ -195,20 +208,24 @@ public class PlayerShoot : NetworkBehaviour
         {
             if (hit.collider.tag == PLAYER_TAG)
             {
-                CmdShootPlayer(hit.collider.name, weapon.damage);
+                CmdShootPlayer(hit.collider.name, weapon.damage, this.name, weapon.killValue, weapon.teamValue);
             }
             //Hit something, call on hit to draw effect for all players
             CmdOnHitEffect(hit.point, hit.normal);
         }        
         spraySettleTime = 0;
         sprayIndex++;
+        if (sprayIndex > weapon.SprayPatternX.Length - 1)
+        {
+            sprayIndex = weapon.SprayPatternX.Length - 1;
+        }
     }
 
     [Command]
-    private void CmdShootPlayer(string idOfShot, int damageDone)
+    private void CmdShootPlayer(string idOfShot, int damageDone, string shooterId, int killVal, int teamVal)
     {
         PlayerManager playerShot = GameManager.GetPlayer(idOfShot);
-        playerShot.RpcTakeDamage(damageDone);
+        playerShot.RpcTakeDamage(damageDone, shooterId, killVal, teamVal);
     }
 
     private void StartReload()
@@ -256,6 +273,15 @@ public class PlayerShoot : NetworkBehaviour
             tries++;
         }
         yield return null;
+    }
+
+    /// <summary>
+    /// Returns the weapon the player currently has equipped.
+    /// </summary>
+    /// <returns></returns>
+    public Weapon GetCurrentWeapon()
+    {
+        return weapon;
     }
 
     public void WeaponChanged()

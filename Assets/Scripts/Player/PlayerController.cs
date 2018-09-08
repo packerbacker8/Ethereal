@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     private float walkSpeed;
     private float currentSpeed;
     [SerializeField]
-    private float jumpHeight = 10f;
+    private float jumpHeight = 25000f;
     [SerializeField]
     private float mouseSensitivity = 3f;
     [SerializeField]

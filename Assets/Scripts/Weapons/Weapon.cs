@@ -16,6 +16,13 @@ public abstract class Weapon : MonoBehaviour
     public float roundsPerMinute = 600f; //fires once every tenth of a second
     public float timeToReload = 2.5f; //2 and half seconds
     public float settleTime = 0.25f; // every quarter a second go back one index on the spray if not shooting
+    /// <summary>
+    /// A ratio of the spray pattern that gets applied to the val of the spray pattern to determine
+    /// how much back the settle should move the camera. Low values mean move it back less, high values
+    /// mean move it back more.
+    /// </summary>
+    [Range(0,1)]
+    public float camSettleAmount = 0.5f;
     public float sellBackRatio = 0.5f;
 
     public int ammo = 30;
@@ -49,6 +56,30 @@ public abstract class Weapon : MonoBehaviour
         protected set
         {
             sprayPatternY = value;
+        }
+    }
+
+    public float[] SettlePatternX
+    {
+        get
+        {
+            return settlePatternX;
+        }
+        protected set
+        {
+            settlePatternX = value;
+        }
+    }
+
+    public float[] SettlePatternY
+    {
+        get
+        {
+            return settlePatternY;
+        }
+        protected set
+        {
+            settlePatternY = value;
         }
     }
 
@@ -102,6 +133,8 @@ public abstract class Weapon : MonoBehaviour
 
     protected float[] sprayPatternX;
     protected float[] sprayPatternY;
+    protected float[] settlePatternX;
+    protected float[] settlePatternY;
     protected float[] movingSprayPatternX;
     protected float[] movingSprayPatternY;
     protected float[] crouchingSprayPatternX;

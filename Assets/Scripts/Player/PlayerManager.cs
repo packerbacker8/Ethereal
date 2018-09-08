@@ -92,7 +92,7 @@ public class PlayerManager : NetworkBehaviour
     /// </summary>
     /// <param name="amount">How much damage to take.</param>
     [ClientRpc]
-    public void RpcTakeDamage(int amount)
+    public void RpcTakeDamage(int amount, string shooterId, int killVal, int teamVal)
     {
         if (!Dead)
         {
@@ -101,12 +101,31 @@ public class PlayerManager : NetworkBehaviour
             {
                 currentHealth = 0;
                 KillPlayer();
+                // TODO: fix this
+                if (isLocalPlayer)
+                {
+                    CmdGivePlayerMoney(shooterId, killVal, teamVal);
+                }                
             }
             if (playerUI != null)
             {
                 playerUI.SetHealth((float)currentHealth / maxHealth);
             }
         }
+    }
+
+    [Command]
+    public void CmdGivePlayerMoney(string shooterId, int killVal, int teamVal)
+    {
+        PlayerManager shootingPlayer = GameManager.GetPlayer(shooterId);
+        shootingPlayer.RpcGivePlayerMoney(killVal, teamVal);
+    }
+
+    [ClientRpc]
+    public void RpcGivePlayerMoney(int killVal, int teamVal)
+    {
+        AdjustPlayerMoney(killVal);
+        //do something with team money here
     }
 
     /// <summary>
@@ -208,7 +227,7 @@ public class PlayerManager : NetworkBehaviour
     public void SetCurrentPlayerMoney(int newAmount)
     {
         currentMoney = newAmount;
-        playerUI.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
+        playerUI?.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
     }
 
     /// <summary>
@@ -220,7 +239,8 @@ public class PlayerManager : NetworkBehaviour
     /// change the player's current money by.</param>
     public void AdjustPlayerMoney(int val)
     {
+        //TODO: put cap on money so it can't go above personal limit of this match setting
         currentMoney += val;
-        playerUI.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
+        playerUI?.gameObject.SendMessage("PlayerMoneyChanged", SendMessageOptions.DontRequireReceiver);
     }
 }

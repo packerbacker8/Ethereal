@@ -360,6 +360,7 @@ GameObject:
   - component: {fileID: 222664392430706458}
   - component: {fileID: 114784601769429420}
   - component: {fileID: 114501693631777852}
+  - component: {fileID: 114562359001344886}
   m_Layer: 5
   m_Name: SellGrenadeButton
   m_TagString: Untagged
@@ -1589,6 +1590,7 @@ GameObject:
   - component: {fileID: 222141939509547454}
   - component: {fileID: 114693427817745288}
   - component: {fileID: 114752107932607958}
+  - component: {fileID: 114906609593152372}
   m_Layer: 5
   m_Name: SellPrimaryButton
   m_TagString: Untagged
@@ -1695,6 +1697,7 @@ GameObject:
   - component: {fileID: 222968667596254092}
   - component: {fileID: 114817660998253552}
   - component: {fileID: 114212329775114314}
+  - component: {fileID: 114796544872285170}
   m_Layer: 5
   m_Name: SellSecondaryButton
   m_TagString: Untagged
@@ -5054,6 +5057,18 @@ MonoBehaviour:
   m_Spacing: {x: 15, y: 15}
   m_Constraint: 1
   m_ConstraintCount: 4
+--- !u!114 &114562359001344886
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1204632498054720}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e73b3cdd7cd22a409a3cc8dc17b0ff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sellSlotName: grenades
 --- !u!114 &114563837530990262
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6203,6 +6218,18 @@ MonoBehaviour:
   m_FillAmount: 1
   m_FillClockwise: 1
   m_FillOrigin: 0
+--- !u!114 &114796544872285170
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1865232027174308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e73b3cdd7cd22a409a3cc8dc17b0ff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sellSlotName: secondary
 --- !u!114 &114807262832173114
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6923,6 +6950,18 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: Grenade
+--- !u!114 &114906609593152372
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1821921758047342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e73b3cdd7cd22a409a3cc8dc17b0ff4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sellSlotName: primary
 --- !u!114 &114907179025000040
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -9108,7 +9147,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 449.5, y: -197}
+  m_AnchoredPosition: {x: 456.5, y: -197}
   m_SizeDelta: {x: 120, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224227564460247686
@@ -9202,7 +9241,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 314.5, y: -197}
+  m_AnchoredPosition: {x: 321.5, y: -197}
   m_SizeDelta: {x: 120, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224271150834647866
@@ -10370,7 +10409,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 179.5, y: -197}
+  m_AnchoredPosition: {x: 186.5, y: -197}
   m_SizeDelta: {x: 120, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224783402742898784

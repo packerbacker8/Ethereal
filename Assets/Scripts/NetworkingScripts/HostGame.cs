@@ -19,6 +19,8 @@ public class HostGame : MonoBehaviour
         {
             network.StartMatchMaker();
         }
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     public void SetRoomName(string name)

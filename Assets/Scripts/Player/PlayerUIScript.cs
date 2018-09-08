@@ -174,6 +174,7 @@ public class PlayerUIScript : MonoBehaviour
     {
         economyObj.SetActive(false);
         personalSellObj.SetActive(true);
+        SetInteractableStateOfSellButtons();
     }
 
     public void OpenTeamBuyMenu()
@@ -256,6 +257,7 @@ public class PlayerUIScript : MonoBehaviour
         }
         Weapon wep = weaponSold.GetComponent<Weapon>();
         playerManager.AdjustPlayerMoney((int)Mathf.Floor(wep.cost * wep.sellBackRatio));
+        SetInteractableStateOfSellButtons();
         Destroy(weaponSold);
     }
 
@@ -272,6 +274,7 @@ public class PlayerUIScript : MonoBehaviour
         }
         Weapon wep = weaponSold.GetComponent<Weapon>();
         playerManager.AdjustPlayerMoney((int)Mathf.Floor(wep.cost * wep.sellBackRatio));
+        SetInteractableStateOfSellButtons();
         Destroy(weaponSold);
     }
 
@@ -396,6 +399,7 @@ public class PlayerUIScript : MonoBehaviour
         if (personalSellObj.activeInHierarchy)
         {
             SetCursorMenuMode();
+            SetInteractableStateOfSellButtons();
         }
         else
         {
@@ -447,7 +451,7 @@ public class PlayerUIScript : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError("personalWeaponPrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
+                    Debug.Log("personalWeaponPrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
                     button.interactable = false;
                 }
             }
@@ -471,7 +475,7 @@ public class PlayerUIScript : MonoBehaviour
             }
             else
             {
-                Debug.LogError("grenadePrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
+                Debug.Log("grenadePrefabs does not contain an entry for: " + buyButton.GetComponent<BuyWeaponButtonScript>().weaponName);
                 button.interactable = false;
             }
         }
@@ -480,5 +484,34 @@ public class PlayerUIScript : MonoBehaviour
         {
 
         }*/
+    }
+
+    /// <summary>
+    /// Sets state of the sell buttons to be interactable or not
+    /// depending on if the player has an item equipped in that slot.
+    /// </summary>
+    private void SetInteractableStateOfSellButtons()
+    {
+        for (int i = 0; i < personalSellObj.transform.childCount; i++)
+        {
+            GameObject sellSlotMenuObj = personalSellObj.transform.GetChild(i).gameObject;
+            Button sellButton = sellSlotMenuObj.GetComponent<Button>();
+            //this will be the grenade object
+            if(sellSlotMenuObj.transform.childCount > 1)
+            {
+                sellButton.interactable = false; // TODO: change this once grenades are ready and this menu obj functions as expected
+            }
+            else
+            {
+                if(playerInventory.GetWeapon(sellSlotMenuObj.GetComponent<SellWeaponButtonScript>().sellSlotName) == null)
+                {
+                    sellButton.interactable = false;
+                }
+                else
+                {
+                    sellButton.interactable = true;
+                }
+            }
+        }
     }
 }
