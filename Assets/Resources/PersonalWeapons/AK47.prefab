@@ -428,6 +428,8 @@ MonoBehaviour:
   roundsPerMinute: 600
   timeToReload: 2.5
   settleTime: 0.2
+  camSettleAmount: 0.3
+  sellBackRatio: 0.5
   ammo: 30
   currentAmmo: 30
   totalAmmo: 240

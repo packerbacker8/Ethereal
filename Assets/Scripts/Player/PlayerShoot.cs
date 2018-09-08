@@ -86,17 +86,17 @@ public class PlayerShoot : NetworkBehaviour
         {
             if (motor.isMoving)
             {
-                motor.AddShootingMotionX(weapon.MovingSprayPatternX[sprayIndex]);
-                motor.AddShootingMotionY(new Vector3(0, weapon.MovingSprayPatternY[sprayIndex], 0));
+                motor.AddShootingMotionX(new Vector3(0, weapon.MovingSprayPatternX[sprayIndex], 0));
+                motor.AddShootingMotionY(weapon.MovingSprayPatternY[sprayIndex]);
             }
             else
             {
-                motor.AddShootingMotionX(weapon.SprayPatternX[sprayIndex]);
-                motor.AddShootingMotionY(new Vector3(0, weapon.SprayPatternY[sprayIndex], 0));
+                motor.AddShootingMotionX(new Vector3(0, weapon.SprayPatternX[sprayIndex], 0));
+                motor.AddShootingMotionY(weapon.SprayPatternY[sprayIndex]);
             }
             Shoot();
         }
-        else if (!shooting)
+        else     // if (!shooting || currentAmmo == 0)
         {
             if(sprayIndex != 0)
             {
@@ -105,15 +105,12 @@ public class PlayerShoot : NetworkBehaviour
                 {
                     sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
                     spraySettleTime = 0;
-                    motor.AddShootingMotionX(weapon.SettlePatternX[sprayIndex]);
-                    motor.AddShootingMotionY(new Vector3(0, weapon.SettlePatternY[sprayIndex], 0));
+                    //motor.AddShootingMotionX(new Vector3(0, weapon.SettlePatternX[sprayIndex], 0));
+                    //motor.AddShootingMotionY(weapon.SettlePatternY[sprayIndex]);
                 }
             }
-            else
-            {
-                motor.AddShootingMotionX(0);
-                motor.AddShootingMotionY(Vector3.zero);
-            }
+            motor.AddShootingMotionX(Vector3.zero);
+            motor.AddShootingMotionY(0);
         }
         timeSinceLastShot -= Time.deltaTime;
         timeSinceLastShot = timeSinceLastShot <= 0 ? 0 : timeSinceLastShot;
