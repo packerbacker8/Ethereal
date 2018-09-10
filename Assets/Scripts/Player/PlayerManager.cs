@@ -71,8 +71,8 @@ public class PlayerManager : NetworkBehaviour
             {
                 wasEnabled[i] = disableOnDeath[i].enabled;
             }
-
             playerUIObj = this.GetComponent<PlayerSetup>().GetPlayerUI();
+            SetCurrentPlayerMoney(GameManager.instance.matchSettings.startPersonalMoney);
             if (playerUIObj != null)
             {
                 playerUI = playerUIObj.GetComponent<PlayerUIScript>();
@@ -191,7 +191,6 @@ public class PlayerManager : NetworkBehaviour
             this.GetComponent<Rigidbody>().useGravity = true;
         }
         currentHealth = maxHealth;
-        SetCurrentPlayerMoney(GameManager.instance.matchSettings.startPersonalMoney);
         if (playerUI != null)
         {
             playerUI.SetHealth(1f);

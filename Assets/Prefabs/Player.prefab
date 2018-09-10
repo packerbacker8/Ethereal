@@ -448,7 +448,7 @@ MonoBehaviour:
   showSprayLines: 1
   mask:
     serializedVersion: 2
-    m_Bits: 1335
+    m_Bits: 5431
 --- !u!114 &114382854536223606
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -547,6 +547,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoPickup: 1
   pickupRange: 2.5
+  throwAwayWepDistance: 3
   interact: 101
 --- !u!135 &135060321604716312
 SphereCollider:

@@ -6,8 +6,6 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerManager))]
 public class PlayerSetup : NetworkBehaviour
 {
-    public string remoteLayer = "RemotePlayer";
-
     [SerializeField]
     private Behaviour[] componentsToDisable;
 
@@ -22,6 +20,7 @@ public class PlayerSetup : NetworkBehaviour
             DisableComponents();
             AssignRemoteLayer();
             playerUI = null;
+            this.GetComponentInChildren<InventoryScript>().SetupInventory(playerUI);
         }
         else
         {
@@ -59,7 +58,7 @@ public class PlayerSetup : NetworkBehaviour
 
     private void AssignRemoteLayer()
     {
-        gameObject.layer = LayerMask.NameToLayer(remoteLayer);
+        gameObject.layer = LayerMask.NameToLayer(Constants.REMOTE_PLAYER_LAYER);
     }
 
     private void OnDisable()

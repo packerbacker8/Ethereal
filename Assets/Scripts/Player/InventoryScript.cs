@@ -1,13 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class InventoryScript : MonoBehaviour
 {
     public bool autoPickup = true;
     public float pickupRange = 10f;
+    public float throwAwayWepDistance = 3f;
     public KeyCode interact = KeyCode.E;
-
 
     [Header("Inventory Slot Keys")]
     public const string PRIMARY = "primary";
@@ -16,13 +17,10 @@ public class InventoryScript : MonoBehaviour
     public const string GRENADES = "grenades";
     public const string BOMB = "bomb";
 
-    public const string WEAPON_LAYER = "Weapon";
-    public const string WORLD_OBJECT_LAYER = "WorldObject";
-
     public const int GRENADE_COUNT = 4;
 
     private GameObject playerCam;
-    private InventoryUIScript inventoryUi;
+    private InventoryUIScript inventoryUi = null;
 
     private Dictionary<string, GameObject[]> inventory;
 
@@ -72,15 +70,10 @@ public class InventoryScript : MonoBehaviour
                 }
             }
         }
-        if(playerUIObj == null)
-        {
-            Debug.LogError("Player UI was null in the set up of the inventory script.");
-        }
-        else
+        if(playerUIObj != null)
         {
             inventoryUi = playerUIObj.GetComponent<InventoryUIScript>();
         }
-
     }
 
     private void Update()
@@ -102,7 +95,7 @@ public class InventoryScript : MonoBehaviour
     {
         RaycastHit hit;
         Debug.DrawLine(playerCam.transform.position, playerCam.transform.position + playerCam.transform.forward * pickupRange, Color.blue, 5f);
-        int mask = 1 << LayerMask.NameToLayer(WORLD_OBJECT_LAYER);
+        int mask = 1 << LayerMask.NameToLayer(Constants.WORLD_OBJECT_LAYER);
         if (Physics.Raycast(playerCam.transform.position, playerCam.transform.forward, out hit, pickupRange, mask))
         {
             GameObject hitObj = hit.transform.gameObject;
@@ -134,7 +127,6 @@ public class InventoryScript : MonoBehaviour
 
     public GameObject GetWeapon(string slot, int grenadeIndex = 0)
     {
-        //inventoryUi.InventoryActionPerformed();
         switch (slot)
         {
             case PRIMARY:
@@ -216,19 +208,9 @@ public class InventoryScript : MonoBehaviour
         {
             return wepToRemove;
         }
-
-        wepToRemove.transform.parent = null;
-        Util.SetLayerRecusively(wepToRemove, LayerMask.NameToLayer(WORLD_OBJECT_LAYER));
-        wepToRemove.transform.position = wepToRemove.transform.position + wepToRemove.transform.forward * (this.GetComponent<SphereCollider>().radius * 2.5f);
-        wepToRemove.transform.position = new Vector3(wepToRemove.transform.position.x, this.transform.position.y, wepToRemove.transform.position.z);
-        wepToRemove.GetComponent<Rigidbody>().useGravity = true;
-        wepToRemove.GetComponent<Rigidbody>().isKinematic = false;
-        wepToRemove.GetComponent<Rigidbody>().detectCollisions = true;
-        wepToRemove.GetComponent<Rigidbody>().AddForce(wepToRemove.transform.forward * 1000f);
-        wepToRemove.GetComponent<Rigidbody>().AddTorque(wepToRemove.transform.forward * 1000f);
-        wepToRemove.GetComponent<Collider>().enabled = true;
+        PrepareWeaponForRemovalFromPlayer(wepToRemove);
         this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-        inventoryUi.InventoryActionPerformed();
+        inventoryUi?.InventoryActionPerformed();
         return wepToRemove;
     }
 
@@ -271,7 +253,7 @@ public class InventoryScript : MonoBehaviour
         {
             PrepareWeaponForAddToPlayer(wep);
             this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-            inventoryUi.InventoryActionPerformed();
+            inventoryUi?.InventoryActionPerformed();
         }
         return success;
     }
@@ -374,15 +356,40 @@ public class InventoryScript : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Prepares the gun prefab to be added to the player game object.
+    /// </summary>
+    /// <param name="wepToPrep"></param>
     private void PrepareWeaponForAddToPlayer(GameObject wepToPrep)
     {
         wepToPrep.transform.position = this.transform.position;
         wepToPrep.transform.rotation = this.transform.rotation;
         wepToPrep.transform.parent = this.transform;
+        wepToPrep.tag = Constants.PLAYER_OBJECT_TAG;
         wepToPrep.GetComponent<Rigidbody>().useGravity = false;
         wepToPrep.GetComponent<Rigidbody>().isKinematic = true;
         wepToPrep.GetComponent<Rigidbody>().detectCollisions = false;
         wepToPrep.GetComponent<Collider>().enabled = false;
+    }
+
+    /// <summary>
+    /// Prepares the gun prefab to be removed from the player and 
+    /// to add to the world.
+    /// </summary>
+    /// <param name="wepToRemove"></param>
+    private void PrepareWeaponForRemovalFromPlayer(GameObject wepToRemove)
+    {
+        wepToRemove.transform.parent = null;
+        Util.SetLayerRecusively(wepToRemove, LayerMask.NameToLayer(Constants.WORLD_OBJECT_LAYER));
+        wepToRemove.tag = Constants.WORLD_OBJECT_LAYER;
+        wepToRemove.transform.position = wepToRemove.transform.position + wepToRemove.transform.forward * (this.GetComponent<SphereCollider>().radius * throwAwayWepDistance);
+        wepToRemove.transform.position = new Vector3(wepToRemove.transform.position.x, this.transform.position.y, wepToRemove.transform.position.z);
+        wepToRemove.GetComponent<Rigidbody>().useGravity = true;
+        wepToRemove.GetComponent<Rigidbody>().isKinematic = false;
+        wepToRemove.GetComponent<Rigidbody>().detectCollisions = true;
+        wepToRemove.GetComponent<Rigidbody>().AddForce(wepToRemove.transform.forward * 1000f);
+        wepToRemove.GetComponent<Rigidbody>().AddTorque(wepToRemove.transform.forward * 1000f);
+        wepToRemove.GetComponent<Collider>().enabled = true;
     }
 
     /// <summary>
@@ -439,7 +446,7 @@ public class InventoryScript : MonoBehaviour
             inventory[wepInfo.weaponSlot][0] = weaponToPickup;
 
             this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-            inventoryUi.InventoryActionPerformed();
+            inventoryUi?.InventoryActionPerformed();
         }
     }
 
@@ -460,7 +467,7 @@ public class InventoryScript : MonoBehaviour
                 inventory[grenadeInfo.weaponSlot][i] = grenadeToPickup;
 
                 this.SendMessageUpwards("SetNonNullWeaponsFromInventory", SendMessageOptions.DontRequireReceiver);
-                inventoryUi.InventoryActionPerformed();
+                inventoryUi?.InventoryActionPerformed();
             }
         }
     }

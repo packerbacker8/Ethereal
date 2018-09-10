@@ -6,6 +6,8 @@ TagManager:
   tags:
   - WorldCamera
   - ObjectPools
+  - WorldObject
+  - PlayerObject
   layers:
   - Default
   - TransparentFX

@@ -27,10 +27,6 @@ public class PlayerShoot : NetworkBehaviour
     private ObjectPoolManager allPools;
     private PlayerMotor motor;
 
-    private const string PLAYER_TAG = "Player";
-    private const string OBJECT_POOLS_TAG = "ObjectPools";
-    private const string HIT_EFFECT_POOL_NAME = "HitEffectPool";
-
     private bool reloading = false;
     private bool tryReload = false;
     private bool shooting = false;
@@ -54,7 +50,7 @@ public class PlayerShoot : NetworkBehaviour
             this.enabled = false;
         }
         weaponManager = GetComponent<WeaponManager>();
-        allPools = GameObject.FindGameObjectWithTag(OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
+        allPools = GameObject.FindGameObjectWithTag(Constants.OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
         StartCoroutine(GetHitEffectPool());
         motor = this.GetComponent<PlayerMotor>();
     }
@@ -200,12 +196,18 @@ public class PlayerShoot : NetworkBehaviour
         RaycastHit hit;
         if (Physics.Raycast(startPos, dir, out hit, weapon.range, mask))
         {
-            if (hit.collider.tag == PLAYER_TAG)
+            if (hit.collider.tag == Constants.PLAYER_TAG)
             {
                 CmdShootPlayer(hit.collider.name, weapon.damage, this.name, weapon.killValue, weapon.teamValue);
             }
             //Hit something, call on hit to draw effect for all players
             CmdOnHitEffect(hit.point, hit.normal);
+
+            //TODO: make this not client side only
+            if(hit.collider.tag == Constants.WORLD_OBJECT_TAG)
+            {
+                hit.transform.gameObject.GetComponent<Rigidbody>()?.AddForceAtPosition(hit.point * weapon.damage, hit.point);
+            }
         }
         spraySettleTime = 0;
         sprayIndex++;
@@ -257,7 +259,7 @@ public class PlayerShoot : NetworkBehaviour
         GameObject hitEffectObj;
         while (hitEffectPool == null && tries < 10)
         {
-            hitEffectObj = allPools.GetObjectPoolByName(HIT_EFFECT_POOL_NAME);
+            hitEffectObj = allPools.GetObjectPoolByName(Constants.HIT_EFFECT_POOL_NAME);
             if (hitEffectObj != null)
             {
                 hitEffectPool = hitEffectObj.GetComponent<ObjectPool>();
