@@ -8,6 +8,7 @@ public class SprayPatternTool : EditorWindow
     private static List<float> desiredXPattern;
     private static List<float> desiredYPattern;
     private int numBullets = 0;
+    private string sprayToVisualize = "";
     [MenuItem("Ethereal Tools/Spray Pattern Creator")]
     public static void ShowWindow()
     {
@@ -19,11 +20,16 @@ public class SprayPatternTool : EditorWindow
     private void OnGUI()
     {
         numBullets = EditorGUILayout.IntField("Number of bullets to spray", numBullets);
+        sprayToVisualize = EditorGUILayout.TextField("Put in values of spray to visualize.", sprayToVisualize);
         if(desiredXPattern.Count == 0 && desiredYPattern.Count == 0)
         {
             if (GUILayout.Button("Start Drawing Pattern"))
             {
                 StartPatternDrawing(numBullets);
+            }
+            if(GUILayout.Button("Visualize Pattern"))
+            {
+                StartPatternViz(sprayToVisualize);
             }
         }
         else
@@ -69,6 +75,12 @@ public class SprayPatternTool : EditorWindow
         desiredYPattern = new List<float>(num);
         Debug.Log("Num sending: " + num);
         SprayPatternDrawing.ShowWindow(num);
+    }
+
+    private void StartPatternViz(string pattern)
+    {
+        Debug.Log("Pattern sending: " + pattern);
+        SprayPatternDrawing.ShowWindow(pattern);
     }
 
     public static void ReceiveAndDisplayPatterns(List<float> xPattern, List<float> yPattern)

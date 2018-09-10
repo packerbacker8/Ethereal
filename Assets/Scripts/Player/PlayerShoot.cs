@@ -12,7 +12,6 @@ public class PlayerShoot : NetworkBehaviour
     [Header("Combat Keys")]
     public KeyCode primaryAction = KeyCode.Mouse0;
     public KeyCode secondaryAction = KeyCode.Mouse1;
-    public KeyCode interact = KeyCode.E;
     public KeyCode reload = KeyCode.R;
     public KeyCode melee = KeyCode.F;
     public KeyCode quickGrenade = KeyCode.G;
@@ -26,10 +25,7 @@ public class PlayerShoot : NetworkBehaviour
     private WeaponManager weaponManager;
     private ObjectPool hitEffectPool = null;
     private ObjectPoolManager allPools;
-
-    private const string PLAYER_TAG = "Player";
-    private const string OBJECT_POOLS_TAG = "ObjectPools";
-    private const string HIT_EFFECT_POOL_NAME = "HitEffectPool";
+    private PlayerMotor motor;
 
     private bool reloading = false;
     private bool tryReload = false;
@@ -40,7 +36,6 @@ public class PlayerShoot : NetworkBehaviour
     private float spraySettleTime = 0;
 
     private int currentAmmo;
-    private int currentWeaponIndex = 0;
     private int sprayIndex = 0;
 
     [SerializeField]
@@ -49,48 +44,66 @@ public class PlayerShoot : NetworkBehaviour
     private void Start()
     {
         cam = this.GetComponentInChildren<Camera>();
-        if(cam == null)
+        if (cam == null)
         {
             Debug.LogError("Player shoot: no camera referenced");
             this.enabled = false;
         }
         weaponManager = GetComponent<WeaponManager>();
-        allPools = GameObject.FindGameObjectWithTag(OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
+        allPools = GameObject.FindGameObjectWithTag(Constants.OBJECT_POOLS_TAG).GetComponent<ObjectPoolManager>();
         StartCoroutine(GetHitEffectPool());
+        motor = this.GetComponent<PlayerMotor>();
     }
 
     private void Update()
     {
+        //if weapon is null we don't want to keep doing weapon related stuff
+        if (PauseMenu.isPaused || weapon == null || PlayerUIScript.IsInEconomyMenu)
+        {
+            return;
+        }
         shooting = Input.GetKey(primaryAction);
         tryReload = Input.GetKeyDown(reload);
 
-        if(tryReload && !reloading && currentAmmo < weapon.ammo && isLocalPlayer)
+        if (tryReload && !reloading && currentAmmo < weapon.ammo && isLocalPlayer)
         {
             StartReload();
         }
         else if (reloading)
         {
             reloadTime += Time.deltaTime;
-            if(reloadTime >= weapon.timeToReload)
+            if (reloadTime >= weapon.timeToReload)
             {
                 FinishReload();
             }
         }
 
+        if(shooting && timeSinceLastShot != 0)
+        {
+            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x * weapon.settleAmount * -1, 0));
+            motor.AddShootingMotionY(weapon.kickDir.y * weapon.settleAmount * -1);
+        }
         if (shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0)
         {
+            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x, 0));
+            motor.AddShootingMotionY(weapon.kickDir.y);
             Shoot();
         }
-        else if (!shooting)
+        else if (!shooting || currentAmmo == 0 || reloading)
         {
-            if(sprayIndex != 0)
+            if (sprayIndex != 0)
             {
                 spraySettleTime += Time.deltaTime;
                 if (spraySettleTime > weapon.settleTime)
                 {
                     sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
+                    spraySettleTime = 0;
+                    
                 }
+
             }
+            motor.AddShootingMotionX(Vector3.zero);
+            motor.AddShootingMotionY(0);
         }
         timeSinceLastShot -= Time.deltaTime;
         timeSinceLastShot = timeSinceLastShot <= 0 ? 0 : timeSinceLastShot;
@@ -111,9 +124,10 @@ public class PlayerShoot : NetworkBehaviour
     [ClientRpc]
     private void RpcDoShootEffect()
     {
-        if(weapon == null)
+        if (weapon == null)
         {
-            WeaponChanged();
+            //WeaponChanged();
+            return;
         }
         weapon.weaponGraphics.GetComponentInChildren<WeaponGraphics>().muzzleFlash.Play();
     }
@@ -154,50 +168,73 @@ public class PlayerShoot : NetworkBehaviour
     [Client]
     private void Shoot()
     {
-        if (!isLocalPlayer)
+        if (!isLocalPlayer || weapon == null)
         {
             return;
         }
         //we are shooting, tell server to do the shoot effects
         CmdOnShoot();
 
-        if (sprayIndex > weapon.SprayPatternX.Length - 1)
-        {
-            sprayIndex = weapon.SprayPatternX.Length - 1;
-        } //if they are shooting after switching index can go above length of spray pattern
         timeSinceLastShot = weapon.GetRateOfFireTime();
         currentAmmo--;
         weapon.currentAmmo = currentAmmo;
         Vector3 startPos = cam.transform.position;
-        Vector3 dir = cam.transform.forward + new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
+        Vector3 sprayVal;
+        if (motor.isMoving)
+        {
+            sprayVal = new Vector3(weapon.MovingSprayPatternX[sprayIndex], weapon.MovingSprayPatternY[sprayIndex], 0);
+        }
+        else
+        {
+            sprayVal = new Vector3(weapon.SprayPatternX[sprayIndex], weapon.SprayPatternY[sprayIndex], 0);
+        }
+        Vector3 dir = cam.transform.forward + sprayVal;
         if (showSprayLines)
         {
-            Debug.Log("Spray index: " + sprayIndex);
             Debug.DrawLine(startPos, dir * weapon.range, new Color(0.0333f * (sprayIndex + 1), 0, 0, 1), 10);
         }
         RaycastHit hit;
         if (Physics.Raycast(startPos, dir, out hit, weapon.range, mask))
         {
-            if (hit.collider.tag == PLAYER_TAG)
+            if (hit.collider.tag == Constants.PLAYER_TAG)
             {
-                CmdShootPlayer(hit.collider.name, weapon.damage);
+                CmdShootPlayer(hit.collider.name, weapon.damage, this.name, weapon.killValue, weapon.teamValue);
             }
             //Hit something, call on hit to draw effect for all players
             CmdOnHitEffect(hit.point, hit.normal);
-        }        
+
+            //TODO: make this not client side only
+            if(hit.collider.tag == Constants.WORLD_OBJECT_TAG)
+            {
+                hit.transform.gameObject.GetComponent<Rigidbody>()?.AddForceAtPosition(hit.point * weapon.damage, hit.point);
+            }
+        }
         spraySettleTime = 0;
         sprayIndex++;
+        if (sprayIndex > weapon.SprayPatternX.Length - 1)
+        {
+            sprayIndex = weapon.SprayPatternX.Length - 1;
+        }
     }
 
     [Command]
-    private void CmdShootPlayer(string idOfShot, int damageDone)
+    private void CmdShootPlayer(string idOfShot, int damageDone, string shooterId, int killVal, int teamVal)
     {
         PlayerManager playerShot = GameManager.GetPlayer(idOfShot);
-        playerShot.RpcTakeDamage(damageDone);
+        playerShot.RpcTakeDamage(damageDone, shooterId, killVal, teamVal);
     }
 
     private void StartReload()
     {
+        if (weapon == null)
+        {
+            return;
+        }
+        if (weapon.totalAmmo <= 0)
+        {
+            //play an out of ammo sound
+            return;
+        }
         reloading = true;
         reloadTime = 0;
     }
@@ -220,10 +257,10 @@ public class PlayerShoot : NetworkBehaviour
         int tries = 0;
         float timeToWait = 0.1f;
         GameObject hitEffectObj;
-        while(hitEffectPool == null && tries < 10)
+        while (hitEffectPool == null && tries < 10)
         {
-            hitEffectObj = allPools.GetObjectPoolByName(HIT_EFFECT_POOL_NAME);
-            if(hitEffectObj != null)
+            hitEffectObj = allPools.GetObjectPoolByName(Constants.HIT_EFFECT_POOL_NAME);
+            if (hitEffectObj != null)
             {
                 hitEffectPool = hitEffectObj.GetComponent<ObjectPool>();
             }
@@ -234,11 +271,26 @@ public class PlayerShoot : NetworkBehaviour
         yield return null;
     }
 
+    /// <summary>
+    /// Returns the weapon the player currently has equipped.
+    /// </summary>
+    /// <returns></returns>
+    public Weapon GetCurrentWeapon()
+    {
+        return weapon;
+    }
+
     public void WeaponChanged()
     {
-        if(weaponManager != null)
+        if (weaponManager != null)
         {
             Weapon tempWeapon = weaponManager.GetCurrentWeapon();
+            //we have no weapons
+            if (tempWeapon == null)
+            {
+                weapon = null;
+                return;
+            }
             switch (tempWeapon.gameObject.name)
             {
                 case ("AK47"):
@@ -253,7 +305,7 @@ public class PlayerShoot : NetworkBehaviour
             }
             weapon.SetupWeapon();
             currentAmmo = weapon.currentAmmo;
-            sprayIndex = weapon.SprayPatternX.Length/2;
+            sprayIndex = 0;
         }
     }
 }

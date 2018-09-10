@@ -6,6 +6,8 @@ TagManager:
   tags:
   - WorldCamera
   - ObjectPools
+  - WorldObject
+  - PlayerObject
   layers:
   - Default
   - TransparentFX
@@ -19,7 +21,7 @@ TagManager:
   - LocalPlayer
   - RemotePlayer
   - Weapon
-  - 
+  - WorldObject
   - 
   - 
   - 

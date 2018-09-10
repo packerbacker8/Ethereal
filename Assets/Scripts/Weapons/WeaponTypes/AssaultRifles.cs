@@ -13,7 +13,6 @@ public class AssaultRifles : Weapon
 
     public override void SetupWeapon()
     {
-        killValue = 300;
-        teamValue = 100;
+        base.SetupWeapon();
     }
 }

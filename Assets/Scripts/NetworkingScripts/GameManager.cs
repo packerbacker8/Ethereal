@@ -8,6 +8,9 @@ public class GameManager : MonoBehaviour
 
     public MatchSettings matchSettings;
 
+    [SerializeField]
+    private GameObject worldCamera;
+
     private const string PLAYER_ID_PREFIX = "User_";
 
     private static Dictionary<string, PlayerManager> players = new Dictionary<string, PlayerManager>();
@@ -34,10 +37,10 @@ public class GameManager : MonoBehaviour
     public static void DeRegisterPlayer(string netId)
     {
         players.Remove(PLAYER_ID_PREFIX + netId);
-        if(players.Count == 0)
-        {
-            ReEnableWorldCam();
-        }
+        //if(players.Count == 0)
+        //{
+        //    ReEnableWorldCam();
+        //}
     }
 
     public static void ReEnableWorldCam()
@@ -49,6 +52,15 @@ public class GameManager : MonoBehaviour
     public static PlayerManager GetPlayer(string playerId)
     {
         return players[playerId];
+    }
+
+    public void SetWorldCameraActive(bool isActive)
+    {
+        if(worldCamera == null)
+        {
+            return;
+        }
+        worldCamera.SetActive(isActive);
     }
 
 }

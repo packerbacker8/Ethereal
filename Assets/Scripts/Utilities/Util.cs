@@ -22,4 +22,23 @@ public class Util
             SetLayerRecusively(child.gameObject, newLayer);
         }
     }
+
+    public static void SetTagRecusively(GameObject obj, string newTag)
+    {
+        if (obj == null)
+        {
+            return;
+        }
+
+        obj.tag = newTag;
+
+        foreach (Transform child in obj.transform)
+        {
+            if (child == null)
+            {
+                continue;
+            }
+            SetTagRecusively(child.gameObject, newTag);
+        }
+    }
 }

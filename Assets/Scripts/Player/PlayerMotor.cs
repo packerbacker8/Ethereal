@@ -5,11 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMotor : MonoBehaviour
 {
+    public bool isMoving { get; protected set; }
     private Camera cam;
 
     private Vector3 velocity = Vector3.zero;
     private Vector3 rotation = Vector3.zero;
     private Vector3 jumpForce = Vector3.zero;
+    private Vector3 shootingMotionX = Vector3.zero;
 
     private float currentCameraRotationX = 0f;
     [SerializeField]
@@ -17,17 +19,22 @@ public class PlayerMotor : MonoBehaviour
     [SerializeField]
     private float cameraRotationXLimitMin = -85f;
     private float cameraRotationX = 0f;
+    private float shootingMotionY = 0;
+
 
     private Rigidbody rigid;
 
     private void Start()
     {
         rigid = this.GetComponent<Rigidbody>();
+        isMoving = false;
     }
 
 
     private void FixedUpdate()
     {
+        //TODO: find a way to check if player is falling or jumping to give them worse accuracy
+        isMoving = velocity != Vector3.zero || jumpForce != Vector3.zero;   // || rigid.velocity.magnitude != 0;
         PerformMovement();
         PerformRotation();
     }
@@ -55,10 +62,10 @@ public class PlayerMotor : MonoBehaviour
     /// </summary>
     private void PerformRotation()
     {
-        rigid.MoveRotation(rigid.rotation * Quaternion.Euler(rotation));
+        rigid.MoveRotation(rigid.rotation * Quaternion.Euler(rotation + shootingMotionX));
         if(cam != null)
         {
-            currentCameraRotationX += cameraRotationX;
+            currentCameraRotationX += cameraRotationX + shootingMotionY;
             currentCameraRotationX = currentCameraRotationX > cameraRotationXLimitMax ? cameraRotationXLimitMax : currentCameraRotationX;
             currentCameraRotationX = currentCameraRotationX < cameraRotationXLimitMin ? cameraRotationXLimitMin : currentCameraRotationX;
 
@@ -91,6 +98,25 @@ public class PlayerMotor : MonoBehaviour
     public void RotateCameraX(float newRotation)
     {
         cameraRotationX = newRotation;
+    }
+
+    /// <summary>
+    /// Adding motion to the left and right of the player when shooting.
+    /// </summary>
+    /// <param name="newShootMotionX"></param>
+    public void AddShootingMotionX(Vector3 newShootMotionX)
+    {
+        shootingMotionX = newShootMotionX;
+    }
+
+    /// <summary>
+    /// Adding motion to the camera in the up and down, y direction. 
+    /// That is the x plane of rotation.
+    /// </summary>
+    /// <param name="newShootMotionY"></param>
+    public void AddShootingMotionY(float newShootMotionY)
+    {
+        shootingMotionY = newShootMotionY * -1; //the camera rotation is inverted?
     }
 
     /// <summary>

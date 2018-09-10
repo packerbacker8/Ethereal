@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     private float walkSpeed;
     private float currentSpeed;
     [SerializeField]
-    private float jumpHeight = 10f;
+    private float jumpHeight = 25000f;
     [SerializeField]
     private float mouseSensitivity = 3f;
     [SerializeField]
@@ -36,7 +36,6 @@ public class PlayerController : MonoBehaviour
     private int invertedLook = -1;
 
     private bool isGrounded = true;
-    private bool isJumping = false;
 
     private PlayerMotor motor;
 
@@ -54,6 +53,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (PauseMenu.isPaused)
+        {
+            return;
+        }
         //calculate movement velocity as 3d vector
         bool forwardMove = Input.GetKey(moveForward);
         bool backwardMove = Input.GetKey(moveBackward);
@@ -63,7 +66,7 @@ public class PlayerController : MonoBehaviour
         float zMovement = (backwardMove ? -1 : 0) + (forwardMove ? 1 : 0);
         float yRotation = Input.GetAxisRaw("Mouse X");
         float xRotation = Input.GetAxisRaw("Mouse Y");
-        bool jumping = Input.GetKey(jump);
+        bool jumping = Input.GetKeyDown(jump);
 
         isGrounded = CheckIfGrounded();
         HandleWalking();
@@ -76,6 +79,11 @@ public class PlayerController : MonoBehaviour
 
         motor.Move(velocity);
 
+        //This is here to allow players to move, but not move camera or jump while in menus.
+        if (PlayerUIScript.IsInEconomyMenu)
+        {
+            return;
+        }
         Vector3 rotation = new Vector3(0, yRotation, 0) * mouseSensitivity;
 
         motor.RotateY(rotation);

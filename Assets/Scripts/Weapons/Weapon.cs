@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 [System.Serializable]
 public abstract class Weapon : MonoBehaviour
 {
-    public string weaponName = "AK-47";
+    [Header("Weapon Info")]
+    public string weaponName = "AK47";
+    public string weaponSlot = "primary";
 
     public int damage = 36;
     public float armorPenetration = 0.5f;
@@ -14,15 +17,27 @@ public abstract class Weapon : MonoBehaviour
     public float roundsPerMinute = 600f; //fires once every tenth of a second
     public float timeToReload = 2.5f; //2 and half seconds
     public float settleTime = 0.25f; // every quarter a second go back one index on the spray if not shooting
+    [Range(0, 1.0f)]
+    public float settleAmount = 0.5f;
+
+    public Vector3 kickDir = new Vector3(0.5f, 1.3f, 0);
 
     public int ammo = 30;
     public int currentAmmo = 30;
     public int totalAmmo = 240;
+
+    [Header("Economy Info")]
+    public int cost = 2700;
     public int killValue = 300;
     public int teamValue = 100;
 
-    public GameObject weaponGraphics;
+    public float sellBackRatio = 0.5f;
 
+    [Header("Visual Info")]
+    public GameObject weaponGraphics;
+    public Sprite uiIcon;
+
+    #region All Things Spray Related
     public float[] SprayPatternX
     {
         get
@@ -34,7 +49,6 @@ public abstract class Weapon : MonoBehaviour
             sprayPatternX = value;
         }
     }
-
     public float[] SprayPatternY
     {
         get
@@ -46,7 +60,6 @@ public abstract class Weapon : MonoBehaviour
             sprayPatternY = value;
         }
     }
-
     public float[] MovingSprayPatternX
     {
         get
@@ -58,7 +71,6 @@ public abstract class Weapon : MonoBehaviour
             movingSprayPatternX = value;
         }
     }
-
     public float[] MovingSprayPatternY
     {
         get
@@ -70,7 +82,6 @@ public abstract class Weapon : MonoBehaviour
             movingSprayPatternY = value;
         }
     }
-
     public float[] CrouchingSprayPatternX
     {
         get
@@ -82,7 +93,6 @@ public abstract class Weapon : MonoBehaviour
             crouchingSprayPatternX = value;
         }
     }
-
     public float[] CrouchingSprayPatternY
     {
         get
@@ -102,7 +112,9 @@ public abstract class Weapon : MonoBehaviour
     protected float[] crouchingSprayPatternX;
     protected float[] crouchingSprayPatternY;
 
-    private float rateOfFire;
+    #endregion
+
+    protected float rateOfFire;
 
     protected virtual void Start()
     {
@@ -125,5 +137,8 @@ public abstract class Weapon : MonoBehaviour
     /// Where values are set that are specific to each individual weapon and some 
     /// type specific values where applied to the entire weapon type.
     /// </summary>
-    public abstract void SetupWeapon();
+    public virtual void SetupWeapon()
+    {
+        this.gameObject.name = weaponName;
+    }
 }

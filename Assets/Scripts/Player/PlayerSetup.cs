@@ -6,12 +6,8 @@ using UnityEngine.Networking;
 [RequireComponent(typeof(PlayerManager))]
 public class PlayerSetup : NetworkBehaviour
 {
-    public string remoteLayer = "RemotePlayer";
-
     [SerializeField]
     private Behaviour[] componentsToDisable;
-
-    private Camera worldCamera;
 
     [SerializeField]
     private GameObject playerUIPrefab;
@@ -24,21 +20,20 @@ public class PlayerSetup : NetworkBehaviour
             DisableComponents();
             AssignRemoteLayer();
             playerUI = null;
+            this.GetComponentInChildren<InventoryScript>().SetupInventory(playerUI);
         }
         else
         {
-            worldCamera = GameObject.FindGameObjectWithTag("WorldCamera").GetComponent<Camera>();
-            if(worldCamera != null)
-            {
-                //temporary - will be moved to a different location at a future date
-                worldCamera.enabled = false;
-            }
             //create player ui
             playerUI = Instantiate(playerUIPrefab);
-            playerUI.name = "PlayerUI";
+            playerUI.name = "PlayerUI";            
+            this.GetComponent<PlayerManager>().SetupPlayer();
+            this.GetComponentInChildren<InventoryScript>().SetupInventory(playerUI);
+            playerUI.GetComponent<PlayerUIScript>().SetUpPlayerUIScript(this.gameObject);
+            playerUI.GetComponent<InventoryUIScript>().SetPlayerTarget(this.gameObject);
+            playerUI.GetComponent<InventoryUIScript>().InventoryActionPerformed();
         }
 
-        this.GetComponent<PlayerManager>().Setup();
     }
 
     /// <summary>
@@ -63,12 +58,16 @@ public class PlayerSetup : NetworkBehaviour
 
     private void AssignRemoteLayer()
     {
-        gameObject.layer = LayerMask.NameToLayer(remoteLayer);
+        gameObject.layer = LayerMask.NameToLayer(Constants.REMOTE_PLAYER_LAYER);
     }
 
     private void OnDisable()
     {
         Destroy(playerUI);
+        if (isLocalPlayer)
+        {
+            GameManager.instance.SetWorldCameraActive(true);
+        }
         GameManager.DeRegisterPlayer(this.GetComponent<NetworkIdentity>().netId.ToString());
     }
 
