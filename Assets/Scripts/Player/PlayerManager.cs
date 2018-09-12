@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-[RequireComponent(typeof(PlayerSetup))]
 public class PlayerManager : NetworkBehaviour
 {
     public int maxHealth = 100;
