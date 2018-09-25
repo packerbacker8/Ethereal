@@ -78,12 +78,13 @@ public class PlayerShoot : NetworkBehaviour
             }
         }
 
-        if(shooting && timeSinceLastShot != 0)
+        if (shooting && timeSinceLastShot != 0)
         {
-            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x * weapon.settleAmount * -1, 0));
-            motor.AddShootingMotionY(weapon.kickDir.y * weapon.settleAmount * -1);
+            float settleEval = weapon.settleAmount * Time.deltaTime / weapon.GetRateOfFireTime() * -1; //this is much closer to the desired effect but still needs work.
+            motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x * settleEval, 0));
+            motor.AddShootingMotionY(weapon.kickDir.y * settleEval);
         }
-        if (shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0)
+        if (AllowedToShoot())
         {
             motor.AddShootingMotionX(new Vector3(0, weapon.kickDir.x, 0));
             motor.AddShootingMotionY(weapon.kickDir.y);
@@ -98,7 +99,7 @@ public class PlayerShoot : NetworkBehaviour
                 {
                     sprayIndex = sprayIndex <= 0 ? 0 : sprayIndex - 1;
                     spraySettleTime = 0;
-                    
+
                 }
 
             }
@@ -107,6 +108,11 @@ public class PlayerShoot : NetworkBehaviour
         }
         timeSinceLastShot -= Time.deltaTime;
         timeSinceLastShot = timeSinceLastShot <= 0 ? 0 : timeSinceLastShot;
+    }
+
+    private bool AllowedToShoot()
+    {
+        return shooting && !reloading && timeSinceLastShot == 0 && currentAmmo > 0;
     }
 
     /// <summary>

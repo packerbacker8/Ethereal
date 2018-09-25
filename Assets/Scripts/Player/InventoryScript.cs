@@ -35,7 +35,7 @@ public class InventoryScript : MonoBehaviour
             { PRIMARY, new GameObject[] {null} }, 
             { SECONDARY, new GameObject[] {null}},
             { KNIFE, new GameObject[] {null}},
-            { GRENADES, new GameObject[] {null, null, null, null}},
+            { GRENADES, new GameObject[GRENADE_COUNT]},
             { BOMB, new GameObject[] {null}}
         };
 
@@ -220,7 +220,7 @@ public class InventoryScript : MonoBehaviour
             { PRIMARY, new GameObject[] {null} },
             { SECONDARY, new GameObject[] {null}},
             { KNIFE, new GameObject[] {null}},
-            { GRENADES, new GameObject[] {null, null, null, null}},
+            { GRENADES, new GameObject[GRENADE_COUNT]},
             { BOMB, new GameObject[] {null}}
         };
     }

@@ -12,5 +12,6 @@ public class Constants
     public static string HIT_EFFECT_POOL_NAME = "HitEffectPool";
     public static string WEAPON_LAYER = "Weapon";
     public static string PLAYER_OBJECT_TAG = "PlayerObject";
-
+    public static string PLAYER_ID_PREFIX = "User_";
+    public static string BOT_ID_PREFIX = "Bot_";
 }
